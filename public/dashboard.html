@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Buddy - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header .username {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            padding: 10px 25px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-edit {
+            padding: 10px 25px;
+            background: #51cf66;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(81, 207, 102, 0.4);
+        }
+
+        .dashboard-content {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .welcome-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-card h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .welcome-card p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .stat-card .label {
+            color: #888;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            color: #667eea;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .profile-section {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-section h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .goal-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .goal-box h4 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .goal-box p {
+            line-height: 1.6;
+            font-size: 1.05em;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            padding: 50px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 1.8em;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-save {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 12px;
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💪 Workout Buddy</h1>
+            <div class="user-info">
+                <span class="username" id="username">Loading...</span>
+                <button class="btn-edit" onclick="openEditModal()">Edit Profile</button>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div id="loadingMessage" class="loading">Loading your profile...</div>
+
+        <div id="dashboardContent" class="dashboard-content" style="display: none;">
+            <div class="welcome-card">
+                <div>
+                    <h2 id="welcomeName">Welcome back!</h2>
+                    <p>Here's your fitness profile and current stats</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">🎂</div>
+                    <div class="label">Age</div>
+                    <div class="value" id="age">--</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">⚖️</div>
+                    <div class="label">Weight</div>
+                    <div class="value" id="weight">--</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">📏</div>
+                    <div class="label">Height</div>
+                    <div class="value" id="height">--</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">💪</div>
+                    <div class="label">Muscle Mass</div>
+                    <div class="value" id="muscleMass">--</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <div class="label">Body Fat</div>
+                    <div class="value" id="bodyFat">--</div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Your Fitness Goal</h3>
+                <div class="goal-box">
+                    <h4>🎯 Current Goal</h4>
+                    <p id="goal">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+
+            <div id="successMessage" class="success-message"></div>
+
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editAge">Age</label>
+                    <input type="number" id="editAge" name="age" required min="1" max="120">
+                </div>
+
+                <div class="form-group">
+                    <label for="editWeight">Weight (e.g., "165 lbs")</label>
+                    <input type="text" id="editWeight" name="weight" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editHeight">Height (e.g., "5'9\"")</label>
+                    <input type="text" id="editHeight" name="height" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editMuscleMass">Muscle Mass (e.g., "70 lbs")</label>
+                    <input type="text" id="editMuscleMass" name="muscleMass" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editBodyFat">Body Fat % (e.g., "15%")</label>
+                    <input type="text" id="editBodyFat" name="bodyFat" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editGoal">Fitness Goal</label>
+                    <textarea id="editGoal" name="goal" required></textarea>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentProfile = null;
+
+        // Fetch user profile on page load
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile');
+
+                if (!response.ok) {
+                    // If not authenticated, redirect to login
+                    window.location.href = '/';
+                    return;
+                }
+
+                const data = await response.json();
+                currentProfile = data;
+                displayProfile(data);
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                window.location.href = '/';
+            }
+        }
+
+        function displayProfile(data) {
+            const { username, profile } = data;
+
+            // Update header
+            document.getElementById('username').textContent = `@${username}`;
+            document.getElementById('welcomeName').textContent = `Welcome back, ${profile.name}!`;
+
+            // Update stats
+            document.getElementById('age').textContent = profile.age;
+            document.getElementById('weight').textContent = profile.weight;
+            document.getElementById('height').textContent = profile.height;
+            document.getElementById('muscleMass').textContent = profile.muscleMass;
+            document.getElementById('bodyFat').textContent = profile.bodyFat;
+            document.getElementById('goal').textContent = profile.goal;
+
+            // Show dashboard and hide loading
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+        }
+
+        function openEditModal() {
+            if (!currentProfile) return;
+
+            const profile = currentProfile.profile;
+
+            // Populate form with current values
+            document.getElementById('editAge').value = profile.age;
+            document.getElementById('editWeight').value = profile.weight;
+            document.getElementById('editHeight').value = profile.height;
+            document.getElementById('editMuscleMass').value = profile.muscleMass;
+            document.getElementById('editBodyFat').value = profile.bodyFat;
+            document.getElementById('editGoal').value = profile.goal;
+
+            // Show modal
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('successMessage').classList.remove('show');
+        }
+
+        // Handle edit form submission
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                age: parseInt(document.getElementById('editAge').value),
+                weight: document.getElementById('editWeight').value,
+                height: document.getElementById('editHeight').value,
+                muscleMass: document.getElementById('editMuscleMass').value,
+                bodyFat: document.getElementById('editBodyFat').value,
+                goal: document.getElementById('editGoal').value
+            };
+
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update current profile
+                    currentProfile.profile = data.profile;
+
+                    // Update display
+                    displayProfile(currentProfile);
+
+                    // Show success message
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.textContent = 'Profile updated successfully!';
+                    successMsg.classList.add('show');
+
+                    // Close modal after 2 seconds
+                    setTimeout(() => {
+                        closeEditModal();
+                    }, 2000);
+                } else {
+                    alert('Error updating profile: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Network error. Please try again.');
+            }
+        });
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Error logging out:', error);
+                window.location.href = '/';
+            }
+        }
+
+        // Load profile when page loads
+        loadProfile();
+    </script>
+</body>
+</html>

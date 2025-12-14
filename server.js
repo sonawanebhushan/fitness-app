@@ -286,19 +286,36 @@ app.put('/api/workout/status', authenticateToken, async (req, res) => {
 // Get workout logs for specific day
 app.get('/api/workout/logs/:day', authenticateToken, async (req, res) => {
   const { day } = req.params;
+  const { phase, week } = req.query;
 
   try {
     // Filter logs for the specific day (exercise IDs start with first 3 letters of day)
     const dayPrefix = day.substring(0, 3);
-    const result = await pool.query(
-      'SELECT exercise_id, week, sets, logged_at FROM workout_logs WHERE username = $1 AND exercise_id LIKE $2',
-      [req.user.username, `${dayPrefix}%`]
-    );
+
+    let query = 'SELECT exercise_id, phase, week, sets, logged_at FROM workout_logs WHERE username = $1 AND exercise_id LIKE $2';
+    const params = [req.user.username, `${dayPrefix}%`];
+
+    // Optionally filter by phase
+    if (phase) {
+      query += ' AND phase = $3';
+      params.push(parseInt(phase));
+    }
+
+    // Optionally filter by week
+    if (week) {
+      query += ` AND week = $${params.length + 1}`;
+      params.push(parseInt(week));
+    }
+
+    const result = await pool.query(query, params);
 
     // Convert to object format expected by frontend
     const dayLogs = {};
     result.rows.forEach(row => {
+      // Use a key that includes phase for uniqueness
+      const logKey = `${row.exercise_id}_p${row.phase}_w${row.week}`;
       dayLogs[row.exercise_id] = {
+        phase: row.phase,
         week: row.week,
         sets: row.sets,
         date: row.logged_at
@@ -314,16 +331,21 @@ app.get('/api/workout/logs/:day', authenticateToken, async (req, res) => {
 
 // Save workout log for an exercise
 app.post('/api/workout/logs', authenticateToken, async (req, res) => {
-  const { exerciseId, week, sets } = req.body;
+  const { exerciseId, phase, week, sets } = req.body;
 
   try {
+    // Validate required fields
+    if (!exerciseId || !phase || !week || !sets) {
+      return res.status(400).json({ error: 'Missing required fields: exerciseId, phase, week, sets' });
+    }
+
     // Use ON CONFLICT to update if already exists (upsert)
     await pool.query(
-      `INSERT INTO workout_logs (username, exercise_id, week, sets)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (username, exercise_id, week)
-       DO UPDATE SET sets = $4, logged_at = CURRENT_TIMESTAMP`,
-      [req.user.username, exerciseId, week, JSON.stringify(sets)]
+      `INSERT INTO workout_logs (username, exercise_id, phase, week, sets)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (username, exercise_id, phase, week)
+       DO UPDATE SET sets = $5, logged_at = CURRENT_TIMESTAMP`,
+      [req.user.username, exerciseId, parseInt(phase), parseInt(week), JSON.stringify(sets)]
     );
 
     res.json({
@@ -365,9 +387,15 @@ Open http://localhost:${PORT} in your browser to login!
       console.log('Initializing database...');
       const { initializeDatabase } = require('./init-db');
       await initializeDatabase();
-      console.log('✅ Database ready!\n');
+      console.log('✅ Database ready!');
+
+      // Run migration to add phase column
+      console.log('Running migration...');
+      const { migrate } = require('./migrate-add-phase');
+      await migrate();
+      console.log('✅ Migration complete!\n');
     } catch (error) {
-      console.error('⚠️  Database initialization failed:', error.message);
+      console.error('⚠️  Database initialization/migration failed:', error.message);
       console.log('   The server will continue, but database operations may fail.\n');
     }
   }

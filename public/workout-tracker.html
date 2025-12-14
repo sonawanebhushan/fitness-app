@@ -464,7 +464,7 @@
 
             // Load saved logs for this day
             try {
-                const response = await fetch(`/api/workout/logs/${day}`);
+                const response = await fetch(`/api/workout/logs/${day}?phase=${currentPhase}&week=${currentWeek}`);
                 const data = await response.json();
                 savedLogs = data.logs || {};
             } catch (error) {
@@ -586,6 +586,7 @@
                     },
                     body: JSON.stringify({
                         exerciseId: exerciseId,
+                        phase: currentPhase,
                         week: currentWeek,
                         sets: sets
                     })

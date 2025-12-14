@@ -47,10 +47,11 @@ async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,
         exercise_id VARCHAR(100) NOT NULL,
+        phase INTEGER NOT NULL,
         week INTEGER NOT NULL,
         sets JSONB NOT NULL,
         logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(username, exercise_id, week)
+        UNIQUE(username, exercise_id, phase, week)
       )
     `);
     console.log('✓ Workout logs table created');

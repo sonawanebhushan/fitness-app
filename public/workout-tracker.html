@@ -352,12 +352,8 @@
         </div>
 
         <div class="day-selector">
-            <div class="day-buttons">
-                <button class="day-btn" data-day="monday" onclick="selectDay('monday')">Monday<br><small>Chest & Back</small></button>
-                <button class="day-btn" data-day="tuesday" onclick="selectDay('tuesday')">Tuesday<br><small>Lower 1</small></button>
-                <button class="day-btn" data-day="wednesday" onclick="selectDay('wednesday')">Wednesday<br><small>Shoulders & Arms</small></button>
-                <button class="day-btn" data-day="friday" onclick="selectDay('friday')">Friday<br><small>Posterior Chain</small></button>
-                <button class="day-btn" data-day="saturday" onclick="selectDay('saturday')">Saturday<br><small>Chest & Back 2</small></button>
+            <div class="day-buttons" id="dayButtons">
+                <!-- Days will be dynamically loaded based on phase -->
             </div>
         </div>
 
@@ -396,9 +392,39 @@
 
                 document.getElementById('phaseSelect').value = currentPhase;
                 document.getElementById('weekSelect').value = currentWeek;
+
+                // Load day buttons for current phase
+                loadDayButtons();
             } catch (error) {
                 console.error('Error loading workout data:', error);
             }
+        }
+
+        function loadDayButtons() {
+            if (!workoutData) return;
+
+            const phaseKey = `phase${currentPhase}`;
+            const phaseData = workoutData[phaseKey];
+
+            if (!phaseData) return;
+
+            const dayButtonsContainer = document.getElementById('dayButtons');
+            dayButtonsContainer.innerHTML = '';
+
+            // Create buttons for each day in the phase
+            const days = Object.keys(phaseData.days);
+            days.forEach(day => {
+                const dayData = phaseData.days[day];
+                const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+
+                const button = document.createElement('button');
+                button.className = 'day-btn';
+                button.setAttribute('data-day', day);
+                button.onclick = () => selectDay(day);
+                button.innerHTML = `${dayName}<br><small>${dayData.name}</small>`;
+
+                dayButtonsContainer.appendChild(button);
+            });
         }
 
         function selectDay(day) {
@@ -422,7 +448,15 @@
                 return;
             }
 
-            const dayData = workoutData.phase1.days[day];
+            const phaseKey = `phase${currentPhase}`;
+            const phaseData = workoutData[phaseKey];
+
+            if (!phaseData) {
+                content.innerHTML = '<div class="empty-state"><h3>Phase data not found</h3></div>';
+                return;
+            }
+
+            const dayData = phaseData.days[day];
             if (!dayData) {
                 content.innerHTML = '<div class="empty-state"><h3>No workout data found</h3></div>';
                 return;
@@ -456,6 +490,7 @@
                             <div>
                                 <span class="exercise-type">${exercise.type}</span>
                                 <div class="exercise-name">${exercise.name}</div>
+                                ${exercise.notes ? `<div style="color: #ff6b6b; font-size: 12px; margin-top: 5px; font-weight: 500;">⚠️ ${exercise.notes}</div>` : ''}
                             </div>
                         </div>
                         <div class="exercise-specs">
@@ -575,10 +610,16 @@
         // Phase and week selection
         document.getElementById('phaseSelect').addEventListener('change', async (e) => {
             currentPhase = parseInt(e.target.value);
+            currentDay = null; // Reset selected day
             await updateStatus();
-            if (currentDay) {
-                loadDayWorkout(currentDay);
-            }
+            loadDayButtons(); // Reload day buttons for new phase
+            // Clear workout content
+            document.getElementById('workoutContent').innerHTML = `
+                <div class="empty-state">
+                    <h3>Select a day to view your workout</h3>
+                    <p>Choose a training day from the buttons above to get started</p>
+                </div>
+            `;
         });
 
         document.getElementById('weekSelect').addEventListener('change', async (e) => {

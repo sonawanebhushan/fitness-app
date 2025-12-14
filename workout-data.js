@@ -1311,6 +1311,373 @@ const workoutProgram = {
         ]
       }
     }
+  },
+  phase4: {
+    name: "Phase 4: Intensification 2",
+    weeks: 3,
+    days: {
+      monday: {
+        name: "Upper 1",
+        exercises: [
+          {
+            id: "mon_p4_a1",
+            name: "Standing BB Overhead Press",
+            type: "A1",
+            notes: "Wave Load: 8,6,4,8,6,4",
+            weeks: {
+              week1: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week2: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week3: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" }
+            }
+          },
+          {
+            id: "mon_p4_a2",
+            name: "Pull Ups Wide Pronated",
+            type: "A2",
+            notes: "Wave Load: 5,5,3,3,2,2",
+            weeks: {
+              week1: { sets: 6, reps: "5,5,3,3,2,2", rest: 120, tempo: "3010" },
+              week2: { sets: 6, reps: "5,5,3,3,2,2", rest: 120, tempo: "3010" },
+              week3: { sets: 6, reps: "5,5,3,3,2,2", rest: 120, tempo: "3010" }
+            }
+          },
+          {
+            id: "mon_p4_b1",
+            name: "15º DB Bench Press - neutral grip",
+            type: "B1",
+            weeks: {
+              week1: { sets: 3, reps: "6", rest: 90, tempo: "2210" },
+              week2: { sets: 3, reps: "6", rest: 90, tempo: "2210" },
+              week3: { sets: 3, reps: "6", rest: 90, tempo: "2210" }
+            }
+          },
+          {
+            id: "mon_p4_b2",
+            name: "Neutral Grip Row",
+            type: "B2",
+            weeks: {
+              week1: { sets: 3, reps: "8-10", rest: 90, tempo: "2010" },
+              week2: { sets: 3, reps: "8-10", rest: 90, tempo: "2010" },
+              week3: { sets: 3, reps: "8-10", rest: 90, tempo: "2010" }
+            }
+          },
+          {
+            id: "mon_p4_c1",
+            name: "Leaning one Arm DB Lateral Raise",
+            type: "C1",
+            notes: "Last set drop set x 1",
+            weeks: {
+              week1: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week2: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week3: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" }
+            }
+          },
+          {
+            id: "mon_p4_c2",
+            name: "Supinated Pull down",
+            type: "C2",
+            notes: "Last set drop set x 1",
+            weeks: {
+              week1: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week2: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week3: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" }
+            }
+          }
+        ]
+      },
+      tuesday: {
+        name: "Quads",
+        exercises: [
+          {
+            id: "tue_p4_a1",
+            name: "High Bar Squats",
+            type: "A1",
+            notes: "Wave Load: 8,6,4,8,6,4",
+            weeks: {
+              week1: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week2: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week3: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" }
+            }
+          },
+          {
+            id: "tue_p4_a2",
+            name: "Kneeling One Leg Hamstring Curl",
+            type: "A2",
+            notes: "Wave Load: 8,6,4,8,6,4",
+            weeks: {
+              week1: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week2: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week3: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" }
+            }
+          },
+          {
+            id: "tue_p4_b1",
+            name: "Hack Squat 1 & 1/4 reps",
+            type: "B1",
+            weeks: {
+              week1: { sets: 4, reps: "6-8", rest: 90, tempo: "4010" },
+              week2: { sets: 4, reps: "6-8", rest: 90, tempo: "4010" },
+              week3: { sets: 4, reps: "6-8", rest: 90, tempo: "4010" }
+            }
+          },
+          {
+            id: "tue_p4_b2",
+            name: "Snatch Grip Romanian Deadlifts",
+            type: "B2",
+            notes: "Use straps for grip",
+            weeks: {
+              week1: { sets: 4, reps: "6-8", rest: 90, tempo: "3010" },
+              week2: { sets: 4, reps: "6-8", rest: 90, tempo: "3010" },
+              week3: { sets: 4, reps: "6-8", rest: 90, tempo: "3010" }
+            }
+          },
+          {
+            id: "tue_p4_c",
+            name: "Seated Calf Raises",
+            type: "C",
+            weeks: {
+              week1: { sets: 4, reps: "10", rest: 60, tempo: "2111" },
+              week2: { sets: 4, reps: "10", rest: 60, tempo: "2111" },
+              week3: { sets: 4, reps: "10", rest: 60, tempo: "2111" }
+            }
+          }
+        ]
+      },
+      wednesday: {
+        name: "Upper 2",
+        exercises: [
+          {
+            id: "wed_p4_a1",
+            name: "Flat BB Bench Press",
+            type: "A1",
+            notes: "Wave Load: 8,6,4,8,6,4",
+            weeks: {
+              week1: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week2: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" },
+              week3: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "3010" }
+            }
+          },
+          {
+            id: "wed_p4_a2",
+            name: "Pull Ups Neutral Grip",
+            type: "A2",
+            weeks: {
+              week1: { sets: 6, reps: "3-5", rest: 120, tempo: "2012" },
+              week2: { sets: 6, reps: "3-5", rest: 120, tempo: "2012" },
+              week3: { sets: 6, reps: "3-5", rest: 120, tempo: "2012" }
+            }
+          },
+          {
+            id: "wed_p4_b1",
+            name: "Dips - Chest Emphasis - 1 & 1/4 Reps",
+            type: "B1",
+            notes: "1/4 reps at bottom",
+            weeks: {
+              week1: { sets: 3, reps: "6-8", rest: 90, tempo: "3010" },
+              week2: { sets: 3, reps: "6-8", rest: 90, tempo: "3010" },
+              week3: { sets: 3, reps: "6-8", rest: 90, tempo: "3010" }
+            }
+          },
+          {
+            id: "wed_p4_b2",
+            name: "One Arm T-Bar Row",
+            type: "B2",
+            weeks: {
+              week1: { sets: 3, reps: "6-8", rest: 90, tempo: "2010" },
+              week2: { sets: 3, reps: "6-8", rest: 90, tempo: "2010" },
+              week3: { sets: 3, reps: "6-8", rest: 90, tempo: "2010" }
+            }
+          },
+          {
+            id: "wed_p4_c1",
+            name: "Pec Deck 1 & 1/4 Reps",
+            type: "C1",
+            notes: "Last set drop set x 1 into normal full reps",
+            weeks: {
+              week1: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week2: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week3: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" }
+            }
+          },
+          {
+            id: "wed_p4_c2",
+            name: "Seated Rope Pull to Neck 1 & 1/4 Reps",
+            type: "C2",
+            notes: "Last set drop set x 1 into normal full reps",
+            weeks: {
+              week1: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week2: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" },
+              week3: { sets: 3, reps: "10-12", rest: 45, tempo: "2010" }
+            }
+          }
+        ]
+      },
+      friday: {
+        name: "Posterior Chain",
+        exercises: [
+          {
+            id: "fri_p4_a1",
+            name: "Deadlifts or Trap Bar Deadlifts",
+            type: "A1",
+            notes: "Wave Load: 8,6,4,8,6,4",
+            weeks: {
+              week1: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "22X0" },
+              week2: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "22X0" },
+              week3: { sets: 6, reps: "8,6,4,8,6,4", rest: 120, tempo: "22X0" }
+            }
+          },
+          {
+            id: "fri_p4_a2",
+            name: "Front Foot Elevated DB Split Squats 1 & 1/4",
+            type: "A2",
+            weeks: {
+              week1: { sets: 6, reps: "5-7", rest: 120, tempo: "3010" },
+              week2: { sets: 6, reps: "5-7", rest: 120, tempo: "3010" },
+              week3: { sets: 6, reps: "5-7", rest: 120, tempo: "3010" }
+            }
+          },
+          {
+            id: "fri_p4_b1",
+            name: "Lying Leg curls - Poliquin Toes",
+            type: "B1",
+            notes: "Toes up concentric - toes down eccentric",
+            weeks: {
+              week1: { sets: 4, reps: "6-8", rest: 90, tempo: "4010" },
+              week2: { sets: 4, reps: "6-8", rest: 90, tempo: "4010" },
+              week3: { sets: 4, reps: "6-8", rest: 90, tempo: "4010" }
+            }
+          },
+          {
+            id: "fri_p4_b2",
+            name: "Leg Press: 10 + 10 method",
+            type: "B2",
+            notes: "10 reps feet low and narrow + 10 reps high and wide",
+            weeks: {
+              week1: { sets: 4, reps: "10+10", rest: 90, tempo: "3010" },
+              week2: { sets: 4, reps: "10+10", rest: 90, tempo: "3010" },
+              week3: { sets: 4, reps: "10+10", rest: 90, tempo: "3010" }
+            }
+          },
+          {
+            id: "fri_p4_c",
+            name: "Seated Calf Raises",
+            type: "C",
+            weeks: {
+              week1: { sets: 4, reps: "20", rest: 60, tempo: "2010" },
+              week2: { sets: 4, reps: "20", rest: 60, tempo: "2010" },
+              week3: { sets: 4, reps: "20", rest: 60, tempo: "2010" }
+            }
+          }
+        ]
+      },
+      saturday: {
+        name: "Shoulders and Arms",
+        exercises: [
+          {
+            id: "sat_p4_a1",
+            name: "65º DB Shoulder Press - Neutral Grip Paused",
+            type: "A1",
+            weeks: {
+              week1: { sets: 4, reps: "6", rest: 120, tempo: "3210" },
+              week2: { sets: 4, reps: "6", rest: 120, tempo: "3210" },
+              week3: { sets: 4, reps: "6", rest: 120, tempo: "3210" }
+            }
+          },
+          {
+            id: "sat_p4_a2",
+            name: "Supinated Pull Ups",
+            type: "A2",
+            weeks: {
+              week1: { sets: 4, reps: "6", rest: 120, tempo: "3010" },
+              week2: { sets: 4, reps: "6", rest: 120, tempo: "3010" },
+              week3: { sets: 4, reps: "6", rest: 120, tempo: "3010" }
+            }
+          },
+          {
+            id: "sat_p4_b1",
+            name: "45º Y Raises - Paused",
+            type: "B1",
+            weeks: {
+              week1: { sets: 4, reps: "10", rest: 10, tempo: "2012" },
+              week2: { sets: 4, reps: "10", rest: 10, tempo: "2012" },
+              week3: { sets: 4, reps: "10", rest: 10, tempo: "2012" }
+            }
+          },
+          {
+            id: "sat_p4_b2",
+            name: "45° Prone DB Lateral Raises",
+            type: "B2",
+            weeks: {
+              week1: { sets: 4, reps: "10-12", rest: 120, tempo: "2010" },
+              week2: { sets: 4, reps: "10-12", rest: 120, tempo: "2010" },
+              week3: { sets: 4, reps: "10-12", rest: 120, tempo: "2010" }
+            }
+          },
+          {
+            id: "sat_p4_c1",
+            name: "BB Curls",
+            type: "C1",
+            notes: "Last set - drop set x 1",
+            weeks: {
+              week1: { sets: 3, reps: "6-8", rest: 60, tempo: "3010" },
+              week2: { sets: 3, reps: "6-8", rest: 60, tempo: "3010" },
+              week3: { sets: 3, reps: "6-8", rest: 60, tempo: "3010" }
+            }
+          },
+          {
+            id: "sat_p4_c2",
+            name: "BB Skull Crushers",
+            type: "C2",
+            notes: "Last set rest pause x 1",
+            weeks: {
+              week1: { sets: 3, reps: "8-10", rest: 60, tempo: "3110" },
+              week2: { sets: 3, reps: "8-10", rest: 60, tempo: "3110" },
+              week3: { sets: 3, reps: "8-10", rest: 60, tempo: "3110" }
+            }
+          },
+          {
+            id: "sat_p4_d1",
+            name: "Straight Bar Cable Pushdowns",
+            type: "D1",
+            weeks: {
+              week1: { sets: 3, reps: "12", rest: 30, tempo: "2010" },
+              week2: { sets: 3, reps: "12", rest: 30, tempo: "2010" },
+              week3: { sets: 3, reps: "12", rest: 30, tempo: "2010" }
+            }
+          },
+          {
+            id: "sat_p4_d2",
+            name: "Cable Curls",
+            type: "D2",
+            weeks: {
+              week1: { sets: 3, reps: "12", rest: 30, tempo: "2010" },
+              week2: { sets: 3, reps: "12", rest: 30, tempo: "2010" },
+              week3: { sets: 3, reps: "12", rest: 30, tempo: "2010" }
+            }
+          },
+          {
+            id: "sat_p4_e1",
+            name: "Hanging Leg Raises",
+            type: "E1",
+            weeks: {
+              week1: { sets: 4, reps: "12-15", rest: 30, tempo: "2010" },
+              week2: { sets: 4, reps: "12-15", rest: 30, tempo: "2010" },
+              week3: { sets: 4, reps: "12-15", rest: 30, tempo: "2010" }
+            }
+          },
+          {
+            id: "sat_p4_e2",
+            name: "Side Plank",
+            type: "E2",
+            weeks: {
+              week1: { sets: 4, reps: "30 secs", rest: 45, tempo: "" },
+              week2: { sets: 4, reps: "30 secs", rest: 45, tempo: "" },
+              week3: { sets: 4, reps: "30 secs", rest: 45, tempo: "" }
+            }
+          }
+        ]
+      }
+    }
   }
 };
 

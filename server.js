@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const workoutProgram = require('./workout-data');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,6 +43,21 @@ const users = {
       bodyFat: '18%',
       goal: 'Lose weight and improve cardiovascular health'
     }
+  }
+};
+
+// Workout tracking data (in-memory for simplicity)
+// Structure: { username: { currentPhase: 1, currentWeek: 1, logs: { exerciseId: { week: 1, sets: [{weight, reps}, ...] } } } }
+const workoutLogs = {
+  amar: {
+    currentPhase: 1,
+    currentWeek: 1,
+    logs: {}
+  },
+  prem: {
+    currentPhase: 1,
+    currentWeek: 1,
+    logs: {}
   }
 };
 
@@ -142,6 +158,90 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/dashboard', authenticateToken, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// Workout tracker page
+app.get('/workout-tracker', authenticateToken, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'workout-tracker.html'));
+});
+
+// Get workout program data
+app.get('/api/workout/program', authenticateToken, (req, res) => {
+  res.json(workoutProgram);
+});
+
+// Get user's current workout status
+app.get('/api/workout/status', authenticateToken, (req, res) => {
+  const userLog = workoutLogs[req.user.username];
+  if (!userLog) {
+    return res.status(404).json({ error: 'Workout log not found' });
+  }
+
+  res.json({
+    currentPhase: userLog.currentPhase,
+    currentWeek: userLog.currentWeek
+  });
+});
+
+// Update user's current workout status
+app.put('/api/workout/status', authenticateToken, (req, res) => {
+  const { currentPhase, currentWeek } = req.body;
+  const userLog = workoutLogs[req.user.username];
+
+  if (!userLog) {
+    return res.status(404).json({ error: 'Workout log not found' });
+  }
+
+  if (currentPhase) userLog.currentPhase = currentPhase;
+  if (currentWeek) userLog.currentWeek = currentWeek;
+
+  res.json({
+    success: true,
+    currentPhase: userLog.currentPhase,
+    currentWeek: userLog.currentWeek
+  });
+});
+
+// Get workout logs for specific day
+app.get('/api/workout/logs/:day', authenticateToken, (req, res) => {
+  const { day } = req.params;
+  const userLog = workoutLogs[req.user.username];
+
+  if (!userLog) {
+    return res.status(404).json({ error: 'Workout log not found' });
+  }
+
+  // Filter logs for the specific day
+  const dayLogs = {};
+  Object.keys(userLog.logs).forEach(exerciseId => {
+    if (exerciseId.startsWith(day.substring(0, 3))) {
+      dayLogs[exerciseId] = userLog.logs[exerciseId];
+    }
+  });
+
+  res.json({ logs: dayLogs });
+});
+
+// Save workout log for an exercise
+app.post('/api/workout/logs', authenticateToken, (req, res) => {
+  const { exerciseId, week, sets } = req.body;
+  const userLog = workoutLogs[req.user.username];
+
+  if (!userLog) {
+    return res.status(404).json({ error: 'Workout log not found' });
+  }
+
+  // Save the log
+  userLog.logs[exerciseId] = {
+    week: week,
+    sets: sets,
+    date: new Date().toISOString()
+  };
+
+  res.json({
+    success: true,
+    message: 'Workout logged successfully'
+  });
 });
 
 // Start server

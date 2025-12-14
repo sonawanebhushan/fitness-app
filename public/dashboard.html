@@ -105,6 +105,22 @@
             box-shadow: 0 5px 15px rgba(81, 207, 102, 0.4);
         }
 
+        .btn-workout {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-workout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
         .dashboard-content {
             animation: fadeIn 0.8s ease-out;
         }
@@ -366,6 +382,9 @@
                     <h2 id="welcomeName">Welcome back!</h2>
                     <p>Here's your fitness profile and current stats</p>
                 </div>
+                <div>
+                    <button class="btn-workout" onclick="goToWorkoutTracker()">📊 Workout Tracker</button>
+                </div>
             </div>
 
             <div class="stats-grid">
@@ -589,6 +608,10 @@
                 console.error('Error logging out:', error);
                 window.location.href = '/';
             }
+        }
+
+        function goToWorkoutTracker() {
+            window.location.href = '/workout-tracker';
         }
 
         // Load profile when page loads

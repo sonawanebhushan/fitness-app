@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Tracker - Workout Buddy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .week-phase-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .week-phase-selector select {
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .day-selector {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .day-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .day-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .day-btn:hover {
+            background: #f0f0ff;
+        }
+
+        .day-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .workout-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .workout-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .workout-header h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .workout-header .phase-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .exercise-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .exercise-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .exercise-type {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .exercise-specs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .spec-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .sets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .set-input-group {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .set-input-group.completed {
+            border-color: #4CAF50;
+            background: #f1f8f4;
+        }
+
+        .set-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .set-input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .set-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .save-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .day-btn {
+                min-width: 100px;
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .sets-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💪 Workout Tracker</h1>
+            <div class="header-controls">
+                <div class="week-phase-selector">
+                    <select id="phaseSelect">
+                        <option value="1">Phase 1</option>
+                        <option value="2">Phase 2</option>
+                        <option value="3">Phase 3</option>
+                        <option value="4">Phase 4</option>
+                    </select>
+                    <select id="weekSelect">
+                        <option value="1">Week 1</option>
+                        <option value="2">Week 2</option>
+                        <option value="3">Week 3</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="goToDashboard()">Back to Dashboard</button>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="day-selector">
+            <div class="day-buttons">
+                <button class="day-btn" data-day="monday" onclick="selectDay('monday')">Monday<br><small>Chest & Back</small></button>
+                <button class="day-btn" data-day="tuesday" onclick="selectDay('tuesday')">Tuesday<br><small>Lower 1</small></button>
+                <button class="day-btn" data-day="wednesday" onclick="selectDay('wednesday')">Wednesday<br><small>Shoulders & Arms</small></button>
+                <button class="day-btn" data-day="friday" onclick="selectDay('friday')">Friday<br><small>Posterior Chain</small></button>
+                <button class="day-btn" data-day="saturday" onclick="selectDay('saturday')">Saturday<br><small>Chest & Back 2</small></button>
+            </div>
+        </div>
+
+        <div id="successMessage" class="success-message">
+            Workout saved successfully!
+        </div>
+
+        <div class="workout-content" id="workoutContent">
+            <div class="empty-state">
+                <h3>Select a day to view your workout</h3>
+                <p>Choose a training day from the buttons above to get started</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDay = null;
+        let currentWeek = 1;
+        let currentPhase = 1;
+        let workoutData = null;
+        let savedLogs = {};
+
+        // Load workout data and user status on page load
+        async function init() {
+            try {
+                // Load workout program
+                const programResponse = await fetch('/api/workout/program');
+                workoutData = await programResponse.json();
+
+                // Load user's current status
+                const statusResponse = await fetch('/api/workout/status');
+                const status = await statusResponse.json();
+
+                currentPhase = status.currentPhase;
+                currentWeek = status.currentWeek;
+
+                document.getElementById('phaseSelect').value = currentPhase;
+                document.getElementById('weekSelect').value = currentWeek;
+            } catch (error) {
+                console.error('Error loading workout data:', error);
+            }
+        }
+
+        function selectDay(day) {
+            currentDay = day;
+
+            // Update active state
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-day="${day}"]`).classList.add('active');
+
+            // Load workout for the day
+            loadDayWorkout(day);
+        }
+
+        async function loadDayWorkout(day) {
+            const content = document.getElementById('workoutContent');
+
+            if (!workoutData) {
+                content.innerHTML = '<div class="empty-state"><h3>Loading...</h3></div>';
+                return;
+            }
+
+            const dayData = workoutData.phase1.days[day];
+            if (!dayData) {
+                content.innerHTML = '<div class="empty-state"><h3>No workout data found</h3></div>';
+                return;
+            }
+
+            // Load saved logs for this day
+            try {
+                const response = await fetch(`/api/workout/logs/${day}`);
+                const data = await response.json();
+                savedLogs = data.logs || {};
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                savedLogs = {};
+            }
+
+            let html = `
+                <div class="workout-header">
+                    <h2>${dayData.name}</h2>
+                    <p class="phase-info">Phase ${currentPhase} - Week ${currentWeek}</p>
+                </div>
+            `;
+
+            dayData.exercises.forEach(exercise => {
+                const weekKey = `week${currentWeek}`;
+                const specs = exercise.weeks[weekKey];
+                const savedLog = savedLogs[exercise.id];
+
+                html += `
+                    <div class="exercise-card">
+                        <div class="exercise-header">
+                            <div>
+                                <span class="exercise-type">${exercise.type}</span>
+                                <div class="exercise-name">${exercise.name}</div>
+                            </div>
+                        </div>
+                        <div class="exercise-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">Sets:</span>
+                                <span>${specs.sets}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Reps:</span>
+                                <span>${specs.reps}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Rest:</span>
+                                <span>${specs.rest}s</span>
+                            </div>
+                            ${specs.tempo ? `
+                            <div class="spec-item">
+                                <span class="spec-label">Tempo:</span>
+                                <span>${specs.tempo}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="sets-grid" id="sets-${exercise.id}">
+                `;
+
+                // Create input fields for each set
+                for (let i = 1; i <= specs.sets; i++) {
+                    const savedSet = savedLog?.sets?.[i - 1] || { weight: '', reps: '' };
+                    const isCompleted = savedSet.weight && savedSet.reps;
+
+                    html += `
+                        <div class="set-input-group ${isCompleted ? 'completed' : ''}">
+                            <label class="set-label">Set ${i}</label>
+                            <div class="input-row">
+                                <input type="number"
+                                       placeholder="Weight"
+                                       id="${exercise.id}-set${i}-weight"
+                                       value="${savedSet.weight || ''}"
+                                       step="2.5">
+                                <input type="number"
+                                       placeholder="Reps"
+                                       id="${exercise.id}-set${i}-reps"
+                                       value="${savedSet.reps || ''}"
+                                       step="1">
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                        <button class="save-btn" onclick="saveExercise('${exercise.id}', ${specs.sets})">
+                            Save Exercise
+                        </button>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        async function saveExercise(exerciseId, setCount) {
+            const sets = [];
+
+            for (let i = 1; i <= setCount; i++) {
+                const weight = document.getElementById(`${exerciseId}-set${i}-weight`).value;
+                const reps = document.getElementById(`${exerciseId}-set${i}-reps`).value;
+
+                sets.push({
+                    weight: weight || '',
+                    reps: reps || ''
+                });
+            }
+
+            try {
+                const response = await fetch('/api/workout/logs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        exerciseId: exerciseId,
+                        week: currentWeek,
+                        sets: sets
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccessMessage();
+                    // Update the set input groups to show completed state
+                    const setsContainer = document.getElementById(`sets-${exerciseId}`);
+                    const inputGroups = setsContainer.querySelectorAll('.set-input-group');
+                    inputGroups.forEach((group, index) => {
+                        if (sets[index].weight && sets[index].reps) {
+                            group.classList.add('completed');
+                        } else {
+                            group.classList.remove('completed');
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error saving workout:', error);
+                alert('Failed to save workout. Please try again.');
+            }
+        }
+
+        function showSuccessMessage() {
+            const msg = document.getElementById('successMessage');
+            msg.classList.add('show');
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 3000);
+        }
+
+        // Phase and week selection
+        document.getElementById('phaseSelect').addEventListener('change', async (e) => {
+            currentPhase = parseInt(e.target.value);
+            await updateStatus();
+            if (currentDay) {
+                loadDayWorkout(currentDay);
+            }
+        });
+
+        document.getElementById('weekSelect').addEventListener('change', async (e) => {
+            currentWeek = parseInt(e.target.value);
+            await updateStatus();
+            if (currentDay) {
+                loadDayWorkout(currentDay);
+            }
+        });
+
+        async function updateStatus() {
+            try {
+                await fetch('/api/workout/status', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        currentPhase: currentPhase,
+                        currentWeek: currentWeek
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating status:', error);
+            }
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>

@@ -516,8 +516,21 @@
                         <div class="sets-grid" id="sets-${exercise.id}">
                 `;
 
+                // Parse sets value (handle "4+1" format or regular numbers)
+                const parseSetCount = (sets) => {
+                    if (typeof sets === 'number') return sets;
+                    const str = String(sets);
+                    // Check if it's a format like "4+1"
+                    if (str.includes('+')) {
+                        return str.split('+').reduce((sum, num) => sum + parseInt(num.trim()), 0);
+                    }
+                    return parseInt(str) || 0;
+                };
+
+                const totalSets = parseSetCount(specs.sets);
+
                 // Create input fields for each set
-                for (let i = 1; i <= specs.sets; i++) {
+                for (let i = 1; i <= totalSets; i++) {
                     const savedSet = savedLog?.sets?.[i - 1] || { weight: '', reps: '' };
                     const isCompleted = savedSet.weight && savedSet.reps;
 
@@ -542,7 +555,7 @@
 
                 html += `
                         </div>
-                        <button class="save-btn" onclick="saveExercise('${exercise.id}', ${specs.sets})">
+                        <button class="save-btn" onclick="saveExercise('${exercise.id}', ${totalSets})">
                             Save Exercise
                         </button>
                     </div>

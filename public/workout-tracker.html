@@ -129,6 +129,135 @@
             color: white;
         }
 
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .calendar-sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .calendar-sidebar h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .mini-calendar {
+            width: 100%;
+        }
+
+        .calendar-month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-month-header h4 {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .calendar-nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .calendar-nav-btn:hover {
+            background: #5568d3;
+        }
+
+        .mini-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .mini-day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+            padding: 5px;
+            font-size: 11px;
+        }
+
+        .mini-calendar-day {
+            aspect-ratio: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            background: white;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mini-calendar-day:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .mini-calendar-day.other-month {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .mini-calendar-day.today {
+            border-color: #667eea;
+            border-width: 2px;
+            font-weight: bold;
+        }
+
+        .mini-calendar-day.has-workout {
+            background: #e7f3ff;
+        }
+
+        .mini-day-number {
+            font-size: 11px;
+            color: #333;
+        }
+
+        .mini-workout-dots {
+            display: flex;
+            gap: 2px;
+            margin-top: 2px;
+        }
+
+        .mini-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+        }
+
+        .workout-chest-back { background-color: #ff6b6b; }
+        .workout-lower-1 { background-color: #4ecdc4; }
+        .workout-shoulders-arms { background-color: #45b7d1; }
+        .workout-posterior { background-color: #96ceb4; }
+        .workout-chest-back-2 { background-color: #ffeaa7; }
+        .workout-lower-2 { background-color: #a29bfe; }
+        .workout-thursday { background-color: #fd79a8; }
+
         .workout-content {
             background: white;
             padding: 30px;
@@ -325,6 +454,15 @@
             .sets-grid {
                 grid-template-columns: 1fr;
             }
+
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-sidebar {
+                position: relative;
+                top: 0;
+            }
         }
     </style>
 </head>
@@ -361,10 +499,26 @@
             Workout saved successfully!
         </div>
 
-        <div class="workout-content" id="workoutContent">
-            <div class="empty-state">
-                <h3>Select a day to view your workout</h3>
-                <p>Choose a training day from the buttons above to get started</p>
+        <div class="main-layout">
+            <div class="calendar-sidebar">
+                <h3>📅 Calendar</h3>
+                <div class="mini-calendar">
+                    <div class="calendar-month-header">
+                        <button class="calendar-nav-btn" onclick="calendarPrevMonth()">◀</button>
+                        <h4 id="calendarMonthName">Month Year</h4>
+                        <button class="calendar-nav-btn" onclick="calendarNextMonth()">▶</button>
+                    </div>
+                    <div class="mini-calendar-grid" id="miniCalendarGrid">
+                        <!-- Calendar will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="workout-content" id="workoutContent">
+                <div class="empty-state">
+                    <h3>Select a day to view your workout</h3>
+                    <p>Choose a training day from the buttons above to get started</p>
+                </div>
             </div>
         </div>
     </div>
@@ -395,6 +549,10 @@
 
                 // Load day buttons for current phase
                 loadDayButtons();
+
+                // Load and render mini calendar
+                await loadCalendarLogs();
+                renderMiniCalendar();
             } catch (error) {
                 console.error('Error loading workout data:', error);
             }
@@ -606,6 +764,10 @@
                             group.classList.remove('completed');
                         }
                     });
+
+                    // Refresh calendar to show updated workout
+                    await loadCalendarLogs();
+                    renderMiniCalendar();
                 }
             } catch (error) {
                 console.error('Error saving workout:', error);
@@ -659,6 +821,122 @@
             } catch (error) {
                 console.error('Error updating status:', error);
             }
+        }
+
+        // Mini Calendar Functions
+        let calendarDate = new Date();
+        let calendarLogs = {};
+
+        const dayTypeColors = {
+            'monday': 'workout-chest-back',
+            'tuesday': 'workout-lower-1',
+            'wednesday': 'workout-shoulders-arms',
+            'thursday': 'workout-thursday',
+            'friday': 'workout-posterior',
+            'saturday': 'workout-chest-back-2'
+        };
+
+        async function loadCalendarLogs() {
+            try {
+                const month = calendarDate.getMonth() + 1;
+                const year = calendarDate.getFullYear();
+                const response = await fetch(`/api/calendar/logs?month=${month}&year=${year}`);
+                const data = await response.json();
+                calendarLogs = data.logs || {};
+            } catch (error) {
+                console.error('Error loading calendar logs:', error);
+                calendarLogs = {};
+            }
+        }
+
+        async function renderMiniCalendar() {
+            const year = calendarDate.getFullYear();
+            const month = calendarDate.getMonth();
+
+            // Update header
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            document.getElementById('calendarMonthName').textContent = `${monthNames[month]} ${year}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            // Clear grid
+            const grid = document.getElementById('miniCalendarGrid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'mini-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Add empty cells for days before month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'mini-calendar-day other-month';
+                grid.appendChild(emptyDay);
+            }
+
+            // Add days of month
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'mini-calendar-day';
+
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Check if it's today
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayElement.classList.add('today');
+                }
+
+                // Day number
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'mini-day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+
+                // Check for workouts on this day
+                if (calendarLogs[dateStr]) {
+                    dayElement.classList.add('has-workout');
+                    const logData = calendarLogs[dateStr];
+
+                    // Add colored dots for workout types
+                    if (logData.workoutTypes && logData.workoutTypes.length > 0) {
+                        const dotsContainer = document.createElement('div');
+                        dotsContainer.className = 'mini-workout-dots';
+
+                        logData.workoutTypes.slice(0, 3).forEach(type => {
+                            const dot = document.createElement('span');
+                            dot.className = `mini-dot ${dayTypeColors[type] || 'workout-chest-back'}`;
+                            dotsContainer.appendChild(dot);
+                        });
+
+                        dayElement.appendChild(dotsContainer);
+                    }
+                }
+
+                grid.appendChild(dayElement);
+            }
+        }
+
+        async function calendarPrevMonth() {
+            calendarDate.setMonth(calendarDate.getMonth() - 1);
+            await loadCalendarLogs();
+            renderMiniCalendar();
+        }
+
+        async function calendarNextMonth() {
+            calendarDate.setMonth(calendarDate.getMonth() + 1);
+            await loadCalendarLogs();
+            renderMiniCalendar();
         }
 
         function goToDashboard() {

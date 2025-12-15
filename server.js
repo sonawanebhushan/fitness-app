@@ -4,11 +4,16 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const { Pool } = require('pg');
+const OpenAI = require('openai');
 const workoutProgram = require('./workout-data');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'workout-buddy-secret-key-2025';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+// Initialize OpenAI client
+const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -451,6 +456,80 @@ app.get('/api/calendar/logs', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Get calendar logs error:', error);
     res.status(500).json({ error: 'Server error getting calendar logs' });
+  }
+});
+
+// Parse voice input using OpenAI ChatGPT
+app.post('/api/parse-voice-input', authenticateToken, async (req, res) => {
+  const { transcript } = req.body;
+
+  if (!transcript) {
+    return res.status(400).json({ error: 'Transcript is required' });
+  }
+
+  if (!openai) {
+    return res.status(503).json({
+      error: 'OpenAI API is not configured',
+      fallback: true
+    });
+  }
+
+  try {
+    console.log('Parsing voice input:', transcript);
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a workout tracking assistant. Parse the user's voice input to extract weight (in pounds) and reps.
+
+Rules:
+- Extract weight and reps from natural language
+- Weight should be a number (can be decimal like 50, 50.5, 100, etc.)
+- Reps should be an integer (8, 10, 12, etc.)
+- If only weight is mentioned, return just weight with reps as null
+- If only reps are mentioned, return just reps with weight as null
+- Common phrases: "50 pounds 8 reps", "50 by 8", "50 for 8", "fifty pounds eight reps", "50 8", "135 times 5"
+- Handle misspellings and variations
+- Always assume pounds (not kg)
+
+Respond ONLY with valid JSON in this exact format:
+{"weight": 50, "reps": 8}
+
+If you cannot parse, respond with:
+{"weight": null, "reps": null, "error": "Could not understand"}
+
+No explanations, just JSON.`
+        },
+        {
+          role: 'user',
+          content: transcript
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 100
+    });
+
+    const responseText = completion.choices[0].message.content.trim();
+    console.log('OpenAI response:', responseText);
+
+    // Parse the JSON response
+    const parsed = JSON.parse(responseText);
+
+    res.json({
+      success: true,
+      weight: parsed.weight,
+      reps: parsed.reps,
+      error: parsed.error || null
+    });
+
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    res.status(500).json({
+      error: 'Failed to parse voice input',
+      fallback: true
+    });
   }
 });
 

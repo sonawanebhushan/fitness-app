@@ -508,6 +508,62 @@
             display: block;
         }
 
+        .workout-voice-control {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: stretch;
+        }
+
+        .workout-mic-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 250px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .workout-mic-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .workout-mic-btn.listening {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            animation: pulse 1.5s infinite;
+        }
+
+        .workout-mic-btn.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .workout-mic-btn .mic-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .workout-mic-btn .mic-text {
+            text-align: left;
+        }
+
+        .workout-mic-btn .mic-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .workout-mic-btn .mic-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
         .save-btn {
             margin-top: 15px;
             width: 100%;
@@ -713,6 +769,28 @@
             .voice-status {
                 font-size: 13px;
                 padding: 8px 12px;
+            }
+
+            .workout-voice-control {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .workout-mic-btn {
+                min-width: 100%;
+                padding: 12px 20px;
+            }
+
+            .workout-mic-btn .mic-icon {
+                font-size: 28px;
+            }
+
+            .workout-mic-btn .mic-title {
+                font-size: 14px;
+            }
+
+            .workout-mic-btn .mic-subtitle {
+                font-size: 11px;
             }
         }
     </style>
@@ -926,18 +1004,35 @@
                 savedLogs = {};
             }
 
+            // Build workout context for AI
+            currentWorkoutContext = {
+                day: dayData.name,
+                phase: currentPhase,
+                week: currentWeek,
+                exercises: []
+            };
+
             let html = `
                 <div class="workout-header">
                     <h2>${dayData.name}</h2>
                     <p class="phase-info">Phase ${currentPhase} - Week ${currentWeek} - ${formatDate(document.getElementById('workoutDate').value)}</p>
                 </div>
-                <div class="hands-free-toggle">
-                    <label>
-                        <span>🎙️ Hands-Free Mode</span>
-                        <span style="font-size: 12px; color: #666; font-weight: normal;">Voice input for all sets</span>
-                    </label>
-                    <div class="toggle-switch" id="handsFreeToggle" onclick="toggleHandsFreeMode()">
-                        <div class="toggle-slider"></div>
+                <div class="workout-voice-control">
+                    <button class="workout-mic-btn" id="workoutMicBtn" onclick="startWorkoutVoiceInput()">
+                        <span class="mic-icon">🎤</span>
+                        <div class="mic-text">
+                            <div class="mic-title">Voice Input</div>
+                            <div class="mic-subtitle">Say exercise name, weight & reps</div>
+                        </div>
+                    </button>
+                    <div class="hands-free-toggle" style="flex: 1;">
+                        <label>
+                            <span>🎙️ Continuous Mode</span>
+                            <span style="font-size: 12px; color: #666; font-weight: normal;">Auto-listen after each entry</span>
+                        </label>
+                        <div class="toggle-switch" id="handsFreeToggle" onclick="toggleHandsFreeMode()">
+                            <div class="toggle-slider"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="voice-status" id="voiceStatus"></div>
@@ -947,6 +1042,30 @@
                 const weekKey = `week${currentWeek}`;
                 const specs = exercise.weeks[weekKey];
                 const savedLog = savedLogs[exercise.id];
+
+                // Add to workout context for AI
+                const totalSetsForExercise = parseSetCount(specs.sets);
+                const completedSets = [];
+                for (let i = 1; i <= totalSetsForExercise; i++) {
+                    const saved = savedLog?.sets?.[i - 1];
+                    if (saved?.weight && saved?.reps) {
+                        completedSets.push(i);
+                    }
+                }
+
+                currentWorkoutContext.exercises.push({
+                    id: exercise.id,
+                    name: exercise.name,
+                    type: exercise.type,
+                    totalSets: totalSetsForExercise,
+                    completedSets: completedSets,
+                    specs: {
+                        sets: specs.sets,
+                        reps: specs.reps,
+                        tempo: specs.tempo || '',
+                        rest: specs.rest
+                    }
+                });
 
                 html += `
                     <div class="exercise-card">
@@ -1012,10 +1131,6 @@
                                        id="${exercise.id}-set${i}-reps"
                                        value="${savedSet.reps || ''}"
                                        step="1">
-                                <button class="mic-btn"
-                                        id="${exercise.id}-set${i}-mic"
-                                        onclick="startVoiceInput('${exercise.id}', ${i})"
-                                        title="Voice input">🎤</button>
                             </div>
                         </div>
                     `;
@@ -1277,11 +1392,8 @@
         // Voice Input Functionality
         let recognition = null;
         let speechSynthesis = window.speechSynthesis;
-        let isHandsFreeMode = false;
-        let currentVoiceExercise = null;
-        let currentVoiceSet = null;
-        let handsFreeQueue = [];
-        let isProcessingHandsFree = false;
+        let isContinuousMode = false;
+        let currentWorkoutContext = null; // Store current workout exercises for AI context
 
         // Initialize Web Speech API
         function initVoiceRecognition() {
@@ -1302,232 +1414,158 @@
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript.toLowerCase();
                 console.log('Voice input received:', transcript);
-                parseVoiceInput(transcript);
+                parseWorkoutVoiceInput(transcript);
             };
 
             recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 updateVoiceStatus('Error: ' + event.error, 'error');
-                resetMicButton();
+                resetWorkoutMicButton();
 
-                // Continue hands-free mode if active
-                if (isHandsFreeMode) {
-                    setTimeout(processNextHandsFreeSet, 1000);
+                // Continue continuous mode if active
+                if (isContinuousMode) {
+                    setTimeout(startWorkoutVoiceInput, 2000);
                 }
             };
 
             recognition.onend = () => {
                 console.log('Speech recognition ended');
-                if (!isHandsFreeMode) {
-                    resetMicButton();
+                if (!isContinuousMode) {
+                    resetWorkoutMicButton();
                 }
             };
 
             return true;
         }
 
-        // Start voice input for a specific set
-        function startVoiceInput(exerciseId, setNumber) {
+        // Start voice input for entire workout
+        function startWorkoutVoiceInput() {
             if (!recognition && !initVoiceRecognition()) {
                 alert('Voice input is not supported in your browser. Please try Chrome or Safari.');
                 return;
             }
 
-            currentVoiceExercise = exerciseId;
-            currentVoiceSet = setNumber;
+            if (!currentWorkoutContext || currentWorkoutContext.exercises.length === 0) {
+                alert('No workout loaded. Please select a day first.');
+                return;
+            }
 
             // Update mic button state
-            const micBtn = document.getElementById(`${exerciseId}-set${setNumber}-mic`);
+            const micBtn = document.getElementById('workoutMicBtn');
             if (micBtn) {
                 micBtn.classList.add('listening');
             }
 
-            updateVoiceStatus('🎤 Listening... Say weight and reps (e.g., "50 pounds 8 reps")', 'listening');
+            updateVoiceStatus('🎤 Listening... Say exercise name, weight & reps', 'listening');
 
             try {
                 recognition.start();
             } catch (e) {
                 console.error('Error starting recognition:', e);
-                resetMicButton();
+                resetWorkoutMicButton();
             }
         }
 
-        // Parse voice input and extract weight/reps using ChatGPT
-        async function parseVoiceInput(transcript) {
-            console.log('Parsing transcript:', transcript);
+        // Parse voice input and extract exercise, weight, reps using ChatGPT
+        async function parseWorkoutVoiceInput(transcript) {
+            console.log('Parsing workout transcript:', transcript);
 
             updateVoiceStatus('🤖 Processing with AI...', 'listening');
 
             try {
-                // Call backend API to parse with ChatGPT
+                // Call backend API to parse with ChatGPT + workout context
                 const response = await fetch('/api/parse-voice-input', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ transcript })
+                    body: JSON.stringify({
+                        transcript,
+                        workoutContext: currentWorkoutContext
+                    })
                 });
 
                 const result = await response.json();
 
-                if (!response.ok || result.fallback) {
-                    // Fallback to regex parsing if API fails
-                    console.warn('API failed, using fallback regex parsing');
-                    parseVoiceInputFallback(transcript);
+                if (!response.ok || result.error) {
+                    updateVoiceStatus(result.error || 'Could not understand. Please try again.', 'error');
+                    speakConfirmation(result.error || 'Could not understand');
+                    resetWorkoutMicButton();
+
+                    if (isContinuousMode) {
+                        setTimeout(startWorkoutVoiceInput, 2000);
+                    }
                     return;
                 }
 
-                const weight = result.weight;
-                const reps = result.reps;
+                const { exerciseId, setNumber, weight, reps, exerciseName } = result;
+
+                if (!exerciseId || !setNumber || !weight || !reps) {
+                    updateVoiceStatus('Incomplete information. Please try again.', 'error');
+                    speakConfirmation('Incomplete information');
+                    resetWorkoutMicButton();
+
+                    if (isContinuousMode) {
+                        setTimeout(startWorkoutVoiceInput, 2000);
+                    }
+                    return;
+                }
 
                 // Fill in the inputs
-                if (currentVoiceExercise && currentVoiceSet) {
-                    const weightInput = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-weight`);
-                    const repsInput = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-reps`);
+                const weightInput = document.getElementById(`${exerciseId}-set${setNumber}-weight`);
+                const repsInput = document.getElementById(`${exerciseId}-set${setNumber}-reps`);
 
-                    if (weight && weightInput) {
-                        weightInput.value = weight;
-                    }
-                    if (reps && repsInput) {
-                        repsInput.value = reps;
-                    }
+                if (weightInput && repsInput) {
+                    weightInput.value = weight;
+                    repsInput.value = reps;
 
                     // Update completed state
-                    const setGroup = weightInput?.closest('.set-input-group');
-                    if (setGroup && weight && reps) {
+                    const setGroup = weightInput.closest('.set-input-group');
+                    if (setGroup) {
                         setGroup.classList.add('completed');
                     }
 
                     // Audio confirmation
-                    const confirmText = weight && reps
-                        ? `Got it: ${weight} pounds, ${reps} reps`
-                        : weight
-                        ? `Got ${weight} pounds`
-                        : reps
-                        ? `Got ${reps} reps`
-                        : 'Could not understand. Please try again.';
-
+                    const confirmText = `${exerciseName || 'Exercise'}, set ${setNumber}: ${weight} pounds, ${reps} reps`;
                     speakConfirmation(confirmText);
-                    updateVoiceStatus(confirmText, weight && reps ? 'success' : 'error');
+                    updateVoiceStatus(`✅ ${confirmText}`, 'success');
 
                     // Update mic button
-                    const micBtn = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-mic`);
+                    const micBtn = document.getElementById('workoutMicBtn');
                     if (micBtn) {
                         micBtn.classList.remove('listening');
-                        if (weight && reps) {
-                            micBtn.classList.add('success');
-                            setTimeout(() => micBtn.classList.remove('success'), 2000);
-                        } else {
-                            micBtn.classList.add('error');
-                            setTimeout(() => micBtn.classList.remove('error'), 2000);
-                        }
+                        micBtn.classList.add('success');
+                        setTimeout(() => {
+                            micBtn.classList.remove('success');
+                        }, 1500);
                     }
 
-                    // Continue hands-free mode
-                    if (isHandsFreeMode) {
-                        setTimeout(processNextHandsFreeSet, 2000);
+                    // Continue continuous mode
+                    if (isContinuousMode) {
+                        setTimeout(startWorkoutVoiceInput, 2500);
+                    }
+                } else {
+                    updateVoiceStatus('Could not find exercise inputs', 'error');
+                    speakConfirmation('Error finding exercise');
+                    resetWorkoutMicButton();
+
+                    if (isContinuousMode) {
+                        setTimeout(startWorkoutVoiceInput, 2000);
                     }
                 }
             } catch (error) {
-                console.error('Error parsing voice input:', error);
-                // Fallback to regex parsing
-                parseVoiceInputFallback(transcript);
-            }
-        }
+                console.error('Error parsing workout voice input:', error);
+                updateVoiceStatus('Error processing voice input', 'error');
+                speakConfirmation('Error processing voice input');
+                resetWorkoutMicButton();
 
-        // Fallback regex parsing (original implementation)
-        function parseVoiceInputFallback(transcript) {
-            console.log('Using fallback regex parsing');
-
-            // Remove common filler words and normalize
-            const normalized = transcript
-                .replace(/\b(um|uh|like|okay|ok)\b/gi, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-
-            let weight = null;
-            let reps = null;
-
-            // Pattern 1: "50 pounds 8 reps" or "50 lbs 8 reps"
-            let match = normalized.match(/(\d+(?:\.\d+)?)\s*(?:pounds?|lbs?|lb)\s*(\d+)\s*(?:reps?)?/i);
-            if (match) {
-                weight = parseFloat(match[1]);
-                reps = parseInt(match[2]);
-            }
-
-            // Pattern 2: "50 by 8" or "50 for 8"
-            if (!match) {
-                match = normalized.match(/(\d+(?:\.\d+)?)\s*(?:by|for|times|x)\s*(\d+)/i);
-                if (match) {
-                    weight = parseFloat(match[1]);
-                    reps = parseInt(match[2]);
-                }
-            }
-
-            // Pattern 3: "50 8" (just two numbers)
-            if (!match) {
-                match = normalized.match(/(\d+(?:\.\d+)?)\s+(\d+)/);
-                if (match) {
-                    weight = parseFloat(match[1]);
-                    reps = parseInt(match[2]);
-                }
-            }
-
-            // Pattern 4: Just weight "50 pounds" or "50"
-            if (!weight) {
-                match = normalized.match(/(\d+(?:\.\d+)?)\s*(?:pounds?|lbs?|lb)?/i);
-                if (match) {
-                    weight = parseFloat(match[1]);
-                }
-            }
-
-            // Fill in the inputs
-            if (currentVoiceExercise && currentVoiceSet) {
-                const weightInput = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-weight`);
-                const repsInput = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-reps`);
-
-                if (weight && weightInput) {
-                    weightInput.value = weight;
-                }
-                if (reps && repsInput) {
-                    repsInput.value = reps;
-                }
-
-                // Update completed state
-                const setGroup = weightInput?.closest('.set-input-group');
-                if (setGroup && weight && reps) {
-                    setGroup.classList.add('completed');
-                }
-
-                // Audio confirmation
-                const confirmText = weight && reps
-                    ? `Got it: ${weight} pounds, ${reps} reps`
-                    : weight
-                    ? `Got ${weight} pounds`
-                    : 'Could not understand. Please try again.';
-
-                speakConfirmation(confirmText);
-                updateVoiceStatus(confirmText, weight && reps ? 'success' : 'error');
-
-                // Update mic button
-                const micBtn = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-mic`);
-                if (micBtn) {
-                    micBtn.classList.remove('listening');
-                    if (weight && reps) {
-                        micBtn.classList.add('success');
-                        setTimeout(() => micBtn.classList.remove('success'), 2000);
-                    } else {
-                        micBtn.classList.add('error');
-                        setTimeout(() => micBtn.classList.remove('error'), 2000);
-                    }
-                }
-
-                // Continue hands-free mode
-                if (isHandsFreeMode) {
-                    setTimeout(processNextHandsFreeSet, 2000);
+                if (isContinuousMode) {
+                    setTimeout(startWorkoutVoiceInput, 2000);
                 }
             }
         }
+
+        // Fallback regex parsing (original implementation) - REMOVED, we rely fully on ChatGPT now
 
         // Text-to-speech confirmation
         function speakConfirmation(text) {
@@ -1575,37 +1613,32 @@
         }
 
         // Reset mic button state
-        function resetMicButton() {
-            if (currentVoiceExercise && currentVoiceSet) {
-                const micBtn = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-mic`);
-                if (micBtn) {
-                    micBtn.classList.remove('listening', 'success', 'error');
-                }
+        function resetWorkoutMicButton() {
+            const micBtn = document.getElementById('workoutMicBtn');
+            if (micBtn) {
+                micBtn.classList.remove('listening', 'success', 'error');
             }
         }
 
-        // Toggle hands-free mode
+        // Toggle continuous mode
         function toggleHandsFreeMode() {
             if (!recognition && !initVoiceRecognition()) {
                 alert('Voice input is not supported in your browser. Please try Chrome or Safari.');
                 return;
             }
 
-            isHandsFreeMode = !isHandsFreeMode;
+            isContinuousMode = !isContinuousMode;
             const toggle = document.getElementById('handsFreeToggle');
 
-            if (isHandsFreeMode) {
+            if (isContinuousMode) {
                 toggle.classList.add('active');
-                updateVoiceStatus('🎙️ Hands-Free Mode Active - Starting...', 'listening');
-                speakConfirmation('Hands-free mode activated');
-                buildHandsFreeQueue();
-                setTimeout(processNextHandsFreeSet, 2000);
+                updateVoiceStatus('🎙️ Continuous Mode Active', 'listening');
+                speakConfirmation('Continuous mode activated');
+                setTimeout(startWorkoutVoiceInput, 1500);
             } else {
                 toggle.classList.remove('active');
-                updateVoiceStatus('Hands-Free Mode Deactivated', '');
-                speakConfirmation('Hands-free mode deactivated');
-                handsFreeQueue = [];
-                isProcessingHandsFree = false;
+                updateVoiceStatus('Continuous Mode Deactivated', '');
+                speakConfirmation('Continuous mode deactivated');
                 if (recognition) {
                     try {
                         recognition.stop();
@@ -1614,57 +1647,6 @@
                     }
                 }
             }
-        }
-
-        // Build queue of all incomplete sets
-        function buildHandsFreeQueue() {
-            handsFreeQueue = [];
-
-            // Find all set input groups
-            const allSets = document.querySelectorAll('.set-input-group');
-            allSets.forEach(setGroup => {
-                const inputs = setGroup.querySelectorAll('input');
-                if (inputs.length >= 2) {
-                    const weightInput = inputs[0];
-                    const repsInput = inputs[1];
-
-                    // Only add incomplete sets
-                    if (!weightInput.value || !repsInput.value) {
-                        handsFreeQueue.push({
-                            exerciseId: weightInput.id.split('-set')[0],
-                            setNumber: parseInt(weightInput.id.match(/set(\d+)/)[1])
-                        });
-                    }
-                }
-            });
-
-            console.log('Hands-free queue built:', handsFreeQueue);
-        }
-
-        // Process next set in hands-free mode
-        function processNextHandsFreeSet() {
-            if (!isHandsFreeMode || isProcessingHandsFree) return;
-
-            if (handsFreeQueue.length === 0) {
-                // All sets complete
-                isHandsFreeMode = false;
-                const toggle = document.getElementById('handsFreeToggle');
-                if (toggle) toggle.classList.remove('active');
-                updateVoiceStatus('✅ All sets complete!', 'success');
-                speakConfirmation('All sets complete. Great workout!');
-                return;
-            }
-
-            isProcessingHandsFree = true;
-            const nextSet = handsFreeQueue.shift();
-
-            updateVoiceStatus(`🎤 Ready for Set ${nextSet.setNumber}...`, 'listening');
-            speakConfirmation(`Set ${nextSet.setNumber}`);
-
-            setTimeout(() => {
-                isProcessingHandsFree = false;
-                startVoiceInput(nextSet.exerciseId, nextSet.setNumber);
-            }, 1500);
         }
 
         // Initialize on page load

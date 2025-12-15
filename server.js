@@ -461,7 +461,7 @@ app.get('/api/calendar/logs', authenticateToken, async (req, res) => {
 
 // Parse voice input using OpenAI ChatGPT
 app.post('/api/parse-voice-input', authenticateToken, async (req, res) => {
-  const { transcript } = req.body;
+  const { transcript, workoutContext } = req.body;
 
   if (!transcript) {
     return res.status(400).json({ error: 'Transcript is required' });
@@ -476,31 +476,64 @@ app.post('/api/parse-voice-input', authenticateToken, async (req, res) => {
 
   try {
     console.log('Parsing voice input:', transcript);
+    console.log('Workout context:', JSON.stringify(workoutContext, null, 2));
+
+    // Build exercise context for ChatGPT
+    const exerciseContext = workoutContext?.exercises?.map((ex, idx) => {
+      const nextSet = ex.completedSets.length + 1;
+      return `${idx + 1}. "${ex.name}" (ID: ${ex.id}, Type: ${ex.type}, Total Sets: ${ex.totalSets}, Next Set: ${nextSet <= ex.totalSets ? nextSet : 'all complete'})`;
+    }).join('\n') || 'No exercises available';
+
+    const systemPrompt = `You are a highly intelligent workout tracking assistant. Your job is to parse the user's voice input and extract:
+1. Which exercise they're referring to (match by name, even if partial or misspelled)
+2. Which set number (if not specified, use the next incomplete set)
+3. Weight in pounds
+4. Number of reps
+
+WORKOUT CONTEXT:
+Day: ${workoutContext?.day || 'Unknown'}
+Phase: ${workoutContext?.phase || 'Unknown'}
+Week: ${workoutContext?.week || 'Unknown'}
+
+EXERCISES AVAILABLE:
+${exerciseContext}
+
+INSTRUCTIONS:
+- Match exercise names using fuzzy matching (handle abbreviations, misspellings, partial names)
+- Examples: "incline press" matches "30° Incline DB Press - pronated"
+- Examples: "lat pulldown" matches "Lat Pulldown - neutral grip"
+- Examples: "chest fly" matches "Flat DB Fly - pronated"
+- If set number not mentioned, use the next incomplete set
+- Extract weight (always in pounds) and reps
+- Handle natural language: "fifty pounds eight reps", "50 by 8", "135 times 5", etc.
+
+IMPORTANT:
+- Return the exact exerciseId from the list above
+- Return the setNumber (integer 1-${workoutContext?.exercises?.[0]?.totalSets || 5})
+- Also return the matched exercise name for confirmation
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "exerciseId": "mon_a1",
+  "exerciseName": "30° Incline DB Press",
+  "setNumber": 1,
+  "weight": 50,
+  "reps": 8
+}
+
+If you cannot match an exercise or parse the input, respond with:
+{
+  "error": "Could not understand which exercise, weight, or reps"
+}
+
+NO explanations, just JSON.`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
         {
           role: 'system',
-          content: `You are a workout tracking assistant. Parse the user's voice input to extract weight (in pounds) and reps.
-
-Rules:
-- Extract weight and reps from natural language
-- Weight should be a number (can be decimal like 50, 50.5, 100, etc.)
-- Reps should be an integer (8, 10, 12, etc.)
-- If only weight is mentioned, return just weight with reps as null
-- If only reps are mentioned, return just reps with weight as null
-- Common phrases: "50 pounds 8 reps", "50 by 8", "50 for 8", "fifty pounds eight reps", "50 8", "135 times 5"
-- Handle misspellings and variations
-- Always assume pounds (not kg)
-
-Respond ONLY with valid JSON in this exact format:
-{"weight": 50, "reps": 8}
-
-If you cannot parse, respond with:
-{"weight": null, "reps": null, "error": "Could not understand"}
-
-No explanations, just JSON.`
+          content: systemPrompt
         },
         {
           role: 'user',
@@ -508,7 +541,7 @@ No explanations, just JSON.`
         }
       ],
       temperature: 0.1,
-      max_tokens: 100
+      max_tokens: 150
     });
 
     const responseText = completion.choices[0].message.content.trim();
@@ -517,11 +550,20 @@ No explanations, just JSON.`
     // Parse the JSON response
     const parsed = JSON.parse(responseText);
 
+    if (parsed.error) {
+      return res.json({
+        success: false,
+        error: parsed.error
+      });
+    }
+
     res.json({
       success: true,
+      exerciseId: parsed.exerciseId,
+      exerciseName: parsed.exerciseName,
+      setNumber: parsed.setNumber,
       weight: parsed.weight,
-      reps: parsed.reps,
-      error: parsed.error || null
+      reps: parsed.reps
     });
 
   } catch (error) {

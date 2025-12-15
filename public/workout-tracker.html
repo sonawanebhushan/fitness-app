@@ -63,6 +63,16 @@
             background: white;
         }
 
+        .date-input {
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+            font-family: inherit;
+        }
+
         .btn {
             padding: 10px 20px;
             border: none;
@@ -466,7 +476,8 @@
                 gap: 10px;
             }
 
-            .week-phase-selector select {
+            .week-phase-selector select,
+            .date-input {
                 flex: 1;
                 font-size: 16px;
                 padding: 12px;
@@ -576,6 +587,7 @@
             <h1>💪 Workout Tracker</h1>
             <div class="header-controls">
                 <div class="week-phase-selector">
+                    <input type="date" id="workoutDate" class="date-input">
                     <select id="phaseSelect">
                         <option value="1">Phase 1</option>
                         <option value="2">Phase 2</option>
@@ -631,12 +643,17 @@
         let currentDay = null;
         let currentWeek = 1;
         let currentPhase = 1;
+        let currentDate = new Date();
         let workoutData = null;
         let savedLogs = {};
 
         // Load workout data and user status on page load
         async function init() {
             try {
+                // Set today's date in the date picker
+                const today = new Date();
+                document.getElementById('workoutDate').valueAsDate = today;
+
                 // Load workout program
                 const programResponse = await fetch('/api/workout/program');
                 workoutData = await programResponse.json();
@@ -654,11 +671,49 @@
                 // Load day buttons for current phase
                 loadDayButtons();
 
+                // Auto-select day based on today
+                const dayOfWeek = today.getDay(); // 0 = Sunday
+                const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                const todayName = dayNames[dayOfWeek];
+
+                // Check if this day exists in the current phase
+                const phaseKey = `phase${currentPhase}`;
+                if (workoutData[phaseKey] && workoutData[phaseKey].days[todayName]) {
+                    selectDay(todayName);
+                }
+
                 // Load and render mini calendar
                 await loadCalendarLogs();
                 renderMiniCalendar();
+
+                // Add event listener for date changes
+                document.getElementById('workoutDate').addEventListener('change', onDateChange);
             } catch (error) {
                 console.error('Error loading workout data:', error);
+            }
+        }
+
+        function onDateChange() {
+            const selectedDate = new Date(document.getElementById('workoutDate').value + 'T00:00:00');
+            currentDate = selectedDate;
+
+            // Determine day of week
+            const dayOfWeek = selectedDate.getDay();
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const dayName = dayNames[dayOfWeek];
+
+            // Check if this day exists in the current phase and select it
+            const phaseKey = `phase${currentPhase}`;
+            if (workoutData && workoutData[phaseKey] && workoutData[phaseKey].days[dayName]) {
+                selectDay(dayName);
+            } else {
+                // Clear workout content if no workout for this day
+                document.getElementById('workoutContent').innerHTML = `
+                    <div class="empty-state">
+                        <h3>No workout scheduled for ${dayName.charAt(0).toUpperCase() + dayName.slice(1)}</h3>
+                        <p>This day is a rest day in your current phase</p>
+                    </div>
+                `;
             }
         }
 
@@ -726,7 +781,8 @@
 
             // Load saved logs for this day
             try {
-                const response = await fetch(`/api/workout/logs/${day}?phase=${currentPhase}&week=${currentWeek}`);
+                const selectedDate = document.getElementById('workoutDate').value;
+                const response = await fetch(`/api/workout/logs/${day}?phase=${currentPhase}&week=${currentWeek}&date=${selectedDate}`);
                 const data = await response.json();
                 savedLogs = data.logs || {};
             } catch (error) {
@@ -737,7 +793,7 @@
             let html = `
                 <div class="workout-header">
                     <h2>${dayData.name}</h2>
-                    <p class="phase-info">Phase ${currentPhase} - Week ${currentWeek}</p>
+                    <p class="phase-info">Phase ${currentPhase} - Week ${currentWeek} - ${formatDate(document.getElementById('workoutDate').value)}</p>
                 </div>
             `;
 
@@ -1027,6 +1083,12 @@
                     }
                 }
 
+                // Add click handler to select this date
+                dayElement.onclick = () => {
+                    document.getElementById('workoutDate').value = dateStr;
+                    onDateChange();
+                };
+
                 grid.appendChild(dayElement);
             }
         }
@@ -1041,6 +1103,12 @@
             calendarDate.setMonth(calendarDate.getMonth() + 1);
             await loadCalendarLogs();
             renderMiniCalendar();
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
         }
 
         function goToDashboard() {

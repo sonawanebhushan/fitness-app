@@ -291,7 +291,7 @@ app.put('/api/workout/status', authenticateToken, async (req, res) => {
 // Get workout logs for specific day
 app.get('/api/workout/logs/:day', authenticateToken, async (req, res) => {
   const { day } = req.params;
-  const { phase, week } = req.query;
+  const { phase, week, date } = req.query;
 
   try {
     // Filter logs for the specific day (exercise IDs start with first 3 letters of day)
@@ -302,7 +302,7 @@ app.get('/api/workout/logs/:day', authenticateToken, async (req, res) => {
 
     // Optionally filter by phase
     if (phase) {
-      query += ' AND phase = $3';
+      query += ` AND phase = $${params.length + 1}`;
       params.push(parseInt(phase));
     }
 
@@ -310,6 +310,12 @@ app.get('/api/workout/logs/:day', authenticateToken, async (req, res) => {
     if (week) {
       query += ` AND week = $${params.length + 1}`;
       params.push(parseInt(week));
+    }
+
+    // Optionally filter by specific date
+    if (date) {
+      query += ` AND logged_at::date = $${params.length + 1}::date`;
+      params.push(date);
     }
 
     const result = await pool.query(query, params);

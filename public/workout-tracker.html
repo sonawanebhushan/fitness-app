@@ -375,6 +375,7 @@
         .input-row {
             display: flex;
             gap: 8px;
+            align-items: center;
         }
 
         .set-input-group input {
@@ -388,6 +389,123 @@
         .set-input-group input:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        .mic-btn {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .mic-btn:hover {
+            background: #f0f0ff;
+            transform: scale(1.1);
+        }
+
+        .mic-btn.listening {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .mic-btn.success {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+
+        .mic-btn.error {
+            background: #ff9800;
+            border-color: #ff9800;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .hands-free-toggle {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hands-free-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .voice-status {
+            background: #f0f0ff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .voice-status.show {
+            display: block;
         }
 
         .save-btn {
@@ -577,6 +695,24 @@
                 padding: 8px 12px;
                 font-size: 14px;
                 min-height: 36px;
+            }
+
+            .mic-btn {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                font-size: 18px;
+            }
+
+            .hands-free-toggle {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 15px;
+            }
+
+            .voice-status {
+                font-size: 13px;
+                padding: 8px 12px;
             }
         }
     </style>
@@ -795,6 +931,16 @@
                     <h2>${dayData.name}</h2>
                     <p class="phase-info">Phase ${currentPhase} - Week ${currentWeek} - ${formatDate(document.getElementById('workoutDate').value)}</p>
                 </div>
+                <div class="hands-free-toggle">
+                    <label>
+                        <span>🎙️ Hands-Free Mode</span>
+                        <span style="font-size: 12px; color: #666; font-weight: normal;">Voice input for all sets</span>
+                    </label>
+                    <div class="toggle-switch" id="handsFreeToggle" onclick="toggleHandsFreeMode()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="voice-status" id="voiceStatus"></div>
             `;
 
             dayData.exercises.forEach(exercise => {
@@ -866,6 +1012,10 @@
                                        id="${exercise.id}-set${i}-reps"
                                        value="${savedSet.reps || ''}"
                                        step="1">
+                                <button class="mic-btn"
+                                        id="${exercise.id}-set${i}-mic"
+                                        onclick="startVoiceInput('${exercise.id}', ${i})"
+                                        title="Voice input">🎤</button>
                             </div>
                         </div>
                     `;
@@ -1124,8 +1274,323 @@
             }
         }
 
+        // Voice Input Functionality
+        let recognition = null;
+        let speechSynthesis = window.speechSynthesis;
+        let isHandsFreeMode = false;
+        let currentVoiceExercise = null;
+        let currentVoiceSet = null;
+        let handsFreeQueue = [];
+        let isProcessingHandsFree = false;
+
+        // Initialize Web Speech API
+        function initVoiceRecognition() {
+            // Check browser support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                console.warn('Speech Recognition not supported in this browser');
+                return false;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                console.log('Voice input received:', transcript);
+                parseVoiceInput(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                updateVoiceStatus('Error: ' + event.error, 'error');
+                resetMicButton();
+
+                // Continue hands-free mode if active
+                if (isHandsFreeMode) {
+                    setTimeout(processNextHandsFreeSet, 1000);
+                }
+            };
+
+            recognition.onend = () => {
+                console.log('Speech recognition ended');
+                if (!isHandsFreeMode) {
+                    resetMicButton();
+                }
+            };
+
+            return true;
+        }
+
+        // Start voice input for a specific set
+        function startVoiceInput(exerciseId, setNumber) {
+            if (!recognition && !initVoiceRecognition()) {
+                alert('Voice input is not supported in your browser. Please try Chrome or Safari.');
+                return;
+            }
+
+            currentVoiceExercise = exerciseId;
+            currentVoiceSet = setNumber;
+
+            // Update mic button state
+            const micBtn = document.getElementById(`${exerciseId}-set${setNumber}-mic`);
+            if (micBtn) {
+                micBtn.classList.add('listening');
+            }
+
+            updateVoiceStatus('🎤 Listening... Say weight and reps (e.g., "50 pounds 8 reps")', 'listening');
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Error starting recognition:', e);
+                resetMicButton();
+            }
+        }
+
+        // Parse voice input and extract weight/reps
+        function parseVoiceInput(transcript) {
+            console.log('Parsing transcript:', transcript);
+
+            // Remove common filler words and normalize
+            const normalized = transcript
+                .replace(/\b(um|uh|like|okay|ok)\b/gi, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            let weight = null;
+            let reps = null;
+
+            // Pattern 1: "50 pounds 8 reps" or "50 lbs 8 reps"
+            let match = normalized.match(/(\d+(?:\.\d+)?)\s*(?:pounds?|lbs?|lb)\s*(\d+)\s*(?:reps?)?/i);
+            if (match) {
+                weight = parseFloat(match[1]);
+                reps = parseInt(match[2]);
+            }
+
+            // Pattern 2: "50 by 8" or "50 for 8"
+            if (!match) {
+                match = normalized.match(/(\d+(?:\.\d+)?)\s*(?:by|for|times|x)\s*(\d+)/i);
+                if (match) {
+                    weight = parseFloat(match[1]);
+                    reps = parseInt(match[2]);
+                }
+            }
+
+            // Pattern 3: "50 8" (just two numbers)
+            if (!match) {
+                match = normalized.match(/(\d+(?:\.\d+)?)\s+(\d+)/);
+                if (match) {
+                    weight = parseFloat(match[1]);
+                    reps = parseInt(match[2]);
+                }
+            }
+
+            // Pattern 4: Just weight "50 pounds" or "50"
+            if (!weight) {
+                match = normalized.match(/(\d+(?:\.\d+)?)\s*(?:pounds?|lbs?|lb)?/i);
+                if (match) {
+                    weight = parseFloat(match[1]);
+                }
+            }
+
+            // Fill in the inputs
+            if (currentVoiceExercise && currentVoiceSet) {
+                const weightInput = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-weight`);
+                const repsInput = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-reps`);
+
+                if (weight && weightInput) {
+                    weightInput.value = weight;
+                }
+                if (reps && repsInput) {
+                    repsInput.value = reps;
+                }
+
+                // Update completed state
+                const setGroup = weightInput?.closest('.set-input-group');
+                if (setGroup && weight && reps) {
+                    setGroup.classList.add('completed');
+                }
+
+                // Audio confirmation
+                const confirmText = weight && reps
+                    ? `Got it: ${weight} pounds, ${reps} reps`
+                    : weight
+                    ? `Got ${weight} pounds`
+                    : 'Could not understand. Please try again.';
+
+                speakConfirmation(confirmText);
+                updateVoiceStatus(confirmText, weight && reps ? 'success' : 'error');
+
+                // Update mic button
+                const micBtn = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-mic`);
+                if (micBtn) {
+                    micBtn.classList.remove('listening');
+                    if (weight && reps) {
+                        micBtn.classList.add('success');
+                        setTimeout(() => micBtn.classList.remove('success'), 2000);
+                    } else {
+                        micBtn.classList.add('error');
+                        setTimeout(() => micBtn.classList.remove('error'), 2000);
+                    }
+                }
+
+                // Continue hands-free mode
+                if (isHandsFreeMode) {
+                    setTimeout(processNextHandsFreeSet, 2000);
+                }
+            }
+        }
+
+        // Text-to-speech confirmation
+        function speakConfirmation(text) {
+            if (!speechSynthesis) return;
+
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.1;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.8;
+
+            speechSynthesis.speak(utterance);
+        }
+
+        // Update voice status display
+        function updateVoiceStatus(message, type = '') {
+            const statusDiv = document.getElementById('voiceStatus');
+            if (!statusDiv) return;
+
+            statusDiv.textContent = message;
+            statusDiv.className = 'voice-status show';
+
+            if (type === 'success') {
+                statusDiv.style.background = '#e8f5e9';
+                statusDiv.style.color = '#2e7d32';
+            } else if (type === 'error') {
+                statusDiv.style.background = '#fff3e0';
+                statusDiv.style.color = '#e65100';
+            } else if (type === 'listening') {
+                statusDiv.style.background = '#ffebee';
+                statusDiv.style.color = '#c62828';
+            } else {
+                statusDiv.style.background = '#f0f0ff';
+                statusDiv.style.color = '#667eea';
+            }
+
+            // Auto-hide after 5 seconds for non-listening states
+            if (type !== 'listening') {
+                setTimeout(() => {
+                    statusDiv.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        // Reset mic button state
+        function resetMicButton() {
+            if (currentVoiceExercise && currentVoiceSet) {
+                const micBtn = document.getElementById(`${currentVoiceExercise}-set${currentVoiceSet}-mic`);
+                if (micBtn) {
+                    micBtn.classList.remove('listening', 'success', 'error');
+                }
+            }
+        }
+
+        // Toggle hands-free mode
+        function toggleHandsFreeMode() {
+            if (!recognition && !initVoiceRecognition()) {
+                alert('Voice input is not supported in your browser. Please try Chrome or Safari.');
+                return;
+            }
+
+            isHandsFreeMode = !isHandsFreeMode;
+            const toggle = document.getElementById('handsFreeToggle');
+
+            if (isHandsFreeMode) {
+                toggle.classList.add('active');
+                updateVoiceStatus('🎙️ Hands-Free Mode Active - Starting...', 'listening');
+                speakConfirmation('Hands-free mode activated');
+                buildHandsFreeQueue();
+                setTimeout(processNextHandsFreeSet, 2000);
+            } else {
+                toggle.classList.remove('active');
+                updateVoiceStatus('Hands-Free Mode Deactivated', '');
+                speakConfirmation('Hands-free mode deactivated');
+                handsFreeQueue = [];
+                isProcessingHandsFree = false;
+                if (recognition) {
+                    try {
+                        recognition.stop();
+                    } catch (e) {
+                        console.error('Error stopping recognition:', e);
+                    }
+                }
+            }
+        }
+
+        // Build queue of all incomplete sets
+        function buildHandsFreeQueue() {
+            handsFreeQueue = [];
+
+            // Find all set input groups
+            const allSets = document.querySelectorAll('.set-input-group');
+            allSets.forEach(setGroup => {
+                const inputs = setGroup.querySelectorAll('input');
+                if (inputs.length >= 2) {
+                    const weightInput = inputs[0];
+                    const repsInput = inputs[1];
+
+                    // Only add incomplete sets
+                    if (!weightInput.value || !repsInput.value) {
+                        handsFreeQueue.push({
+                            exerciseId: weightInput.id.split('-set')[0],
+                            setNumber: parseInt(weightInput.id.match(/set(\d+)/)[1])
+                        });
+                    }
+                }
+            });
+
+            console.log('Hands-free queue built:', handsFreeQueue);
+        }
+
+        // Process next set in hands-free mode
+        function processNextHandsFreeSet() {
+            if (!isHandsFreeMode || isProcessingHandsFree) return;
+
+            if (handsFreeQueue.length === 0) {
+                // All sets complete
+                isHandsFreeMode = false;
+                const toggle = document.getElementById('handsFreeToggle');
+                if (toggle) toggle.classList.remove('active');
+                updateVoiceStatus('✅ All sets complete!', 'success');
+                speakConfirmation('All sets complete. Great workout!');
+                return;
+            }
+
+            isProcessingHandsFree = true;
+            const nextSet = handsFreeQueue.shift();
+
+            updateVoiceStatus(`🎤 Ready for Set ${nextSet.setNumber}...`, 'listening');
+            speakConfirmation(`Set ${nextSet.setNumber}`);
+
+            setTimeout(() => {
+                isProcessingHandsFree = false;
+                startVoiceInput(nextSet.exerciseId, nextSet.setNumber);
+            }, 1500);
+        }
+
         // Initialize on page load
         init();
+
+        // Initialize voice recognition on page load
+        if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+            initVoiceRecognition();
+        }
     </script>
 </body>
 </html>

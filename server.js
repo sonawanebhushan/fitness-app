@@ -205,6 +205,11 @@ app.get('/workout-tracker', authenticateToken, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'workout-tracker.html'));
 });
 
+// Calendar page
+app.get('/calendar', authenticateToken, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'calendar.html'));
+});
+
 // Get workout program data
 app.get('/api/workout/program', authenticateToken, (req, res) => {
   res.json(workoutProgram);
@@ -355,6 +360,91 @@ app.post('/api/workout/logs', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Save workout log error:', error);
     res.status(500).json({ error: 'Server error saving workout log' });
+  }
+});
+
+// Get calendar view of workout logs for a specific month
+app.get('/api/calendar/logs', authenticateToken, async (req, res) => {
+  const { month, year } = req.query;
+
+  try {
+    if (!month || !year) {
+      return res.status(400).json({ error: 'Month and year are required' });
+    }
+
+    // Get all workout logs for the user in the specified month
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const endDate = new Date(parseInt(year), parseInt(month), 0);
+    const endDateStr = `${year}-${String(month).padStart(2, '0')}-${endDate.getDate()}`;
+
+    const result = await pool.query(
+      `SELECT exercise_id, phase, week, sets, logged_at
+       FROM workout_logs
+       WHERE username = $1 AND logged_at::date >= $2::date AND logged_at::date <= $3::date
+       ORDER BY logged_at`,
+      [req.user.username, startDate, endDateStr]
+    );
+
+    // Group logs by date
+    const logsByDate = {};
+
+    result.rows.forEach(row => {
+      const dateStr = row.logged_at.toISOString().split('T')[0];
+
+      if (!logsByDate[dateStr]) {
+        logsByDate[dateStr] = {
+          exercises: [],
+          workoutTypes: new Set(),
+          totalSets: 0,
+          completedSets: 0
+        };
+      }
+
+      // Parse exercise name and type from exercise_id
+      const exerciseName = row.exercise_id;
+      const sets = row.sets;
+
+      let completedCount = 0;
+      let totalCount = 0;
+
+      if (Array.isArray(sets)) {
+        totalCount = sets.length;
+        completedCount = sets.filter(s => s.weight && s.reps).length;
+      }
+
+      logsByDate[dateStr].exercises.push({
+        name: exerciseName,
+        phase: row.phase,
+        week: row.week,
+        totalSets: totalCount,
+        setsCompleted: completedCount
+      });
+
+      logsByDate[dateStr].totalSets += totalCount;
+      logsByDate[dateStr].completedSets += completedCount;
+
+      // Determine workout type from exercise_id prefix
+      if (exerciseName.startsWith('mon')) logsByDate[dateStr].workoutTypes.add('monday');
+      else if (exerciseName.startsWith('tue')) logsByDate[dateStr].workoutTypes.add('tuesday');
+      else if (exerciseName.startsWith('wed')) logsByDate[dateStr].workoutTypes.add('wednesday');
+      else if (exerciseName.startsWith('thu')) logsByDate[dateStr].workoutTypes.add('thursday');
+      else if (exerciseName.startsWith('fri')) logsByDate[dateStr].workoutTypes.add('friday');
+      else if (exerciseName.startsWith('sat')) logsByDate[dateStr].workoutTypes.add('saturday');
+    });
+
+    // Calculate completion percentage for each date
+    Object.keys(logsByDate).forEach(date => {
+      const data = logsByDate[date];
+      data.completion = data.totalSets > 0
+        ? (data.completedSets / data.totalSets) * 100
+        : 0;
+      data.workoutTypes = Array.from(data.workoutTypes);
+    });
+
+    res.json({ logs: logsByDate });
+  } catch (error) {
+    console.error('Get calendar logs error:', error);
+    res.status(500).json({ error: 'Server error getting calendar logs' });
   }
 });
 

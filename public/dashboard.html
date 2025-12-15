@@ -382,8 +382,9 @@
                     <h2 id="welcomeName">Welcome back!</h2>
                     <p>Here's your fitness profile and current stats</p>
                 </div>
-                <div>
+                <div style="display: flex; gap: 10px;">
                     <button class="btn-workout" onclick="goToWorkoutTracker()">📊 Workout Tracker</button>
+                    <button class="btn-workout" onclick="goToCalendar()">📅 Calendar</button>
                 </div>
             </div>
 
@@ -612,6 +613,10 @@
 
         function goToWorkoutTracker() {
             window.location.href = '/workout-tracker';
+        }
+
+        function goToCalendar() {
+            window.location.href = '/calendar';
         }
 
         // Load profile when page loads

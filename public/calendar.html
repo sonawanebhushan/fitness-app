@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Calendar - Workout Buddy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .calendar-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .month-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .month-nav button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+            padding: 10px;
+            font-size: 0.9em;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .calendar-day:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .calendar-day.today {
+            border-color: #667eea;
+            border-width: 3px;
+        }
+
+        .day-number {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .workout-indicator {
+            margin-top: 5px;
+            font-size: 0.7em;
+        }
+
+        .workout-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .completion-bar {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .completion-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .completion-text {
+            font-size: 0.7em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Color coding for different workout types */
+        .workout-chest-back { background-color: #ff6b6b; }
+        .workout-lower-1 { background-color: #4ecdc4; }
+        .workout-shoulders-arms { background-color: #45b7d1; }
+        .workout-posterior { background-color: #96ceb4; }
+        .workout-chest-back-2 { background-color: #ffeaa7; }
+        .workout-lower-2 { background-color: #a29bfe; }
+        .workout-thursday { background-color: #fd79a8; }
+
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .workout-summary {
+            margin-top: 15px;
+        }
+
+        .workout-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .workout-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .workout-item p {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Workout Calendar</h1>
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="window.location.href='/dashboard'">Dashboard</button>
+                <button class="btn" onclick="window.location.href='/workout-tracker'">Workout Tracker</button>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h2 id="currentMonth"></h2>
+                <div class="month-nav">
+                    <button onclick="previousMonth()">◀</button>
+                    <button onclick="today()">Today</button>
+                    <button onclick="nextMonth()">▶</button>
+                </div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be populated by JavaScript -->
+            </div>
+
+            <div class="legend">
+                <h3>Workout Day Types</h3>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-dot workout-chest-back"></div>
+                        <span>Chest & Back</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot workout-lower-1"></div>
+                        <span>Lower Body 1</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot workout-shoulders-arms"></div>
+                        <span>Shoulders & Arms</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot workout-posterior"></div>
+                        <span>Posterior Chain</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot workout-chest-back-2"></div>
+                        <span>Chest & Back 2</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot workout-lower-2"></div>
+                        <span>Lower Body 2</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for day details -->
+    <div class="modal" id="dayModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalDate"></h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let workoutData = null;
+        let workoutLogs = {};
+
+        // Day type to class mapping
+        const dayTypeColors = {
+            'monday': 'workout-chest-back',
+            'tuesday': 'workout-lower-1',
+            'wednesday': 'workout-shoulders-arms',
+            'thursday': 'workout-thursday',
+            'friday': 'workout-posterior',
+            'saturday': 'workout-chest-back-2'
+        };
+
+        async function loadWorkoutData() {
+            try {
+                const response = await fetch('/api/workout/program');
+                workoutData = await response.json();
+            } catch (error) {
+                console.error('Error loading workout data:', error);
+            }
+        }
+
+        async function loadWorkoutLogs(month, year) {
+            try {
+                const response = await fetch(`/api/calendar/logs?month=${month}&year=${year}`);
+                const data = await response.json();
+                workoutLogs = data.logs || {};
+            } catch (error) {
+                console.error('Error loading workout logs:', error);
+                workoutLogs = {};
+            }
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Update header
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            // Clear grid
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Add empty cells for days before month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                grid.appendChild(emptyDay);
+            }
+
+            // Add days of month
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Check if it's today
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayElement.classList.add('today');
+                }
+
+                // Day number
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+
+                // Check for workouts on this day
+                if (workoutLogs[dateStr]) {
+                    const logData = workoutLogs[dateStr];
+
+                    // Add colored dots for workout types
+                    const indicator = document.createElement('div');
+                    indicator.className = 'workout-indicator';
+
+                    if (logData.workoutTypes) {
+                        logData.workoutTypes.forEach(type => {
+                            const dot = document.createElement('span');
+                            dot.className = `workout-dot ${dayTypeColors[type] || 'workout-chest-back'}`;
+                            indicator.appendChild(dot);
+                        });
+                    }
+                    dayElement.appendChild(indicator);
+
+                    // Add completion bar
+                    if (logData.completion !== undefined) {
+                        const completionBar = document.createElement('div');
+                        completionBar.className = 'completion-bar';
+                        const completionFill = document.createElement('div');
+                        completionFill.className = 'completion-fill';
+                        completionFill.style.width = `${logData.completion}%`;
+                        completionBar.appendChild(completionFill);
+                        dayElement.appendChild(completionBar);
+
+                        const completionText = document.createElement('div');
+                        completionText.className = 'completion-text';
+                        completionText.textContent = `${Math.round(logData.completion)}%`;
+                        dayElement.appendChild(completionText);
+                    }
+                }
+
+                dayElement.onclick = () => showDayDetails(dateStr, day);
+                grid.appendChild(dayElement);
+            }
+        }
+
+        function showDayDetails(dateStr, day) {
+            const modal = document.getElementById('dayModal');
+            const modalDate = document.getElementById('modalDate');
+            const modalContent = document.getElementById('modalContent');
+
+            modalDate.textContent = `Workouts on ${dateStr}`;
+
+            if (workoutLogs[dateStr]) {
+                const logData = workoutLogs[dateStr];
+                let html = '<div class="workout-summary">';
+
+                if (logData.exercises && logData.exercises.length > 0) {
+                    logData.exercises.forEach(exercise => {
+                        html += `
+                            <div class="workout-item">
+                                <h4>${exercise.name}</h4>
+                                <p>Sets completed: ${exercise.setsCompleted} / ${exercise.totalSets}</p>
+                                <p>Phase ${exercise.phase}, Week ${exercise.week}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p>No workout data logged for this day.</p>';
+                }
+
+                html += '</div>';
+                html += `<button class="btn" style="margin-top: 20px;" onclick="goToWorkoutTracker('${dateStr}')">Log Workout</button>`;
+                modalContent.innerHTML = html;
+            } else {
+                modalContent.innerHTML = `
+                    <p>No workouts logged for this day.</p>
+                    <button class="btn" style="margin-top: 20px;" onclick="goToWorkoutTracker('${dateStr}')">Log Workout</button>
+                `;
+            }
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('dayModal').classList.remove('show');
+        }
+
+        function goToWorkoutTracker(dateStr) {
+            window.location.href = '/workout-tracker';
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear()).then(renderCalendar);
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear()).then(renderCalendar);
+        }
+
+        function today() {
+            currentDate = new Date();
+            loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear()).then(renderCalendar);
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/';
+            }
+        }
+
+        // Initialize
+        async function init() {
+            await loadWorkoutData();
+            await loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear());
+            renderCalendar();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -436,19 +436,69 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
             .header {
                 flex-direction: column;
                 align-items: flex-start;
+                padding: 15px;
+                gap: 12px;
             }
 
             .header h1 {
-                font-size: 22px;
+                font-size: 1.5em;
+            }
+
+            .header-controls {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .week-phase-selector {
+                width: 100%;
+                gap: 10px;
+            }
+
+            .week-phase-selector select {
+                flex: 1;
+                font-size: 16px;
+                padding: 12px;
+                min-height: 44px;
+            }
+
+            .btn {
+                width: 100%;
+                font-size: 16px;
+                padding: 12px;
+                min-height: 44px;
+            }
+
+            .btn-secondary {
+                width: 100%;
+            }
+
+            .day-selector {
+                padding: 15px 10px;
+            }
+
+            .day-buttons {
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: center;
             }
 
             .day-btn {
-                min-width: 100px;
-                padding: 12px;
-                font-size: 14px;
+                min-width: calc(50% - 4px);
+                padding: 12px 8px;
+                font-size: 13px;
+                min-height: 60px;
             }
 
             .sets-grid {
@@ -457,11 +507,65 @@
 
             .main-layout {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
 
             .calendar-sidebar {
                 position: relative;
                 top: 0;
+                padding: 15px;
+            }
+
+            .calendar-sidebar h3 {
+                font-size: 16px;
+            }
+
+            .workout-content {
+                padding: 20px 15px;
+            }
+
+            .workout-header h2 {
+                font-size: 1.3em;
+            }
+
+            .exercise-card {
+                padding: 15px;
+            }
+
+            .exercise-title h3 {
+                font-size: 1.1em;
+            }
+
+            .exercise-specs {
+                font-size: 13px;
+            }
+
+            .set-input-group input {
+                font-size: 16px;
+                padding: 10px;
+                min-height: 44px;
+                -webkit-appearance: none;
+                appearance: none;
+            }
+
+            .set-label {
+                font-size: 13px;
+            }
+
+            .save-btn {
+                font-size: 16px;
+                padding: 14px;
+                min-height: 48px;
+            }
+
+            .mini-calendar-day {
+                font-size: 10px;
+            }
+
+            .calendar-nav-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+                min-height: 36px;
             }
         }
     </style>

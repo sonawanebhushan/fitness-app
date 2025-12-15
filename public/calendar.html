@@ -283,6 +283,145 @@
             color: #666;
             font-size: 0.9em;
         }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .btn {
+                width: 100%;
+                font-size: 16px;
+                padding: 12px;
+                min-height: 44px;
+            }
+
+            .btn-secondary {
+                width: 100%;
+            }
+
+            .calendar-container {
+                padding: 15px;
+            }
+
+            .calendar-header {
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .calendar-header h2 {
+                font-size: 1.3em;
+            }
+
+            .month-nav {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .month-nav button {
+                font-size: 16px;
+                padding: 10px 16px;
+                min-height: 44px;
+            }
+
+            .calendar-grid {
+                gap: 5px;
+            }
+
+            .calendar-day {
+                padding: 4px;
+                min-height: 60px;
+            }
+
+            .day-number {
+                font-size: 0.85em;
+            }
+
+            .workout-indicator {
+                font-size: 0.65em;
+            }
+
+            .workout-dot {
+                width: 6px;
+                height: 6px;
+            }
+
+            .completion-bar {
+                height: 3px;
+                margin-top: 3px;
+            }
+
+            .completion-text {
+                font-size: 0.65em;
+            }
+
+            .legend {
+                padding: 15px;
+                margin-top: 20px;
+            }
+
+            .legend h3 {
+                font-size: 1.1em;
+                margin-bottom: 12px;
+            }
+
+            .legend-items {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .legend-item {
+                font-size: 14px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+                max-height: 85vh;
+            }
+
+            .modal-header h2 {
+                font-size: 1.2em;
+            }
+
+            .close-modal {
+                font-size: 1.8em;
+            }
+
+            .workout-item {
+                padding: 12px;
+            }
+
+            .workout-item h4 {
+                font-size: 1em;
+            }
+
+            .workout-item p {
+                font-size: 0.85em;
+            }
+        }
     </style>
 </head>
 <body>

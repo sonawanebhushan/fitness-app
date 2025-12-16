@@ -239,8 +239,22 @@
             font-weight: bold;
         }
 
+        .mini-calendar-day.selected {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .mini-calendar-day.selected .mini-day-number {
+            color: white;
+        }
+
         .mini-calendar-day.has-workout {
             background: #e7f3ff;
+        }
+
+        .mini-calendar-day.selected.has-workout {
+            background: #667eea;
         }
 
         .mini-day-number {
@@ -866,7 +880,12 @@
             try {
                 // Set today's date in the date picker
                 const today = new Date();
-                document.getElementById('workoutDate').valueAsDate = today;
+                const dateInput = document.getElementById('workoutDate');
+                const todayStr = today.toISOString().split('T')[0];
+
+                dateInput.valueAsDate = today;
+                // Prevent selecting future dates
+                dateInput.max = todayStr;
 
                 // Load workout program
                 const programResponse = await fetch('/api/workout/program');
@@ -1036,15 +1055,6 @@
                             <div class="mic-subtitle">Say exercise name, weight & reps</div>
                         </div>
                     </button>
-                    <div class="hands-free-toggle" style="flex: 1;">
-                        <label>
-                            <span>🎙️ Continuous Mode</span>
-                            <span style="font-size: 12px; color: #666; font-weight: normal;">Auto-listen after each entry</span>
-                        </label>
-                        <div class="toggle-switch" id="handsFreeToggle" onclick="toggleHandsFreeMode()">
-                            <div class="toggle-slider"></div>
-                        </div>
-                    </div>
                 </div>
                 <div class="voice-status" id="voiceStatus"></div>
             `;
@@ -1311,6 +1321,8 @@
 
             // Add days of month
             const today = new Date();
+            const selectedDateStr = document.getElementById('workoutDate').value; // Get selected date from picker
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayElement = document.createElement('div');
                 dayElement.className = 'mini-calendar-day';
@@ -1320,6 +1332,11 @@
                 // Check if it's today
                 if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
                     dayElement.classList.add('today');
+                }
+
+                // Check if it's the selected date
+                if (dateStr === selectedDateStr) {
+                    dayElement.classList.add('selected');
                 }
 
                 // Day number
@@ -1349,10 +1366,21 @@
                 }
 
                 // Add click handler to select this date
-                dayElement.onclick = () => {
-                    document.getElementById('workoutDate').value = dateStr;
-                    onDateChange();
-                };
+                const currentDateObj = new Date(year, month, day);
+                const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                if (currentDateObj > todayMidnight) {
+                    // Future date - disable it
+                    dayElement.style.opacity = '0.4';
+                    dayElement.style.cursor = 'not-allowed';
+                    dayElement.title = 'Cannot log workouts for future dates';
+                } else {
+                    // Past or current date - allow selection
+                    dayElement.onclick = () => {
+                        document.getElementById('workoutDate').value = dateStr;
+                        onDateChange();
+                    };
+                }
 
                 grid.appendChild(dayElement);
             }
@@ -1392,7 +1420,6 @@
         // Voice Input Functionality
         let recognition = null;
         let speechSynthesis = window.speechSynthesis;
-        let isContinuousMode = false;
         let currentWorkoutContext = null; // Store current workout exercises for AI context
 
         // Initialize Web Speech API
@@ -1421,18 +1448,11 @@
                 console.error('Speech recognition error:', event.error);
                 updateVoiceStatus('Error: ' + event.error, 'error');
                 resetWorkoutMicButton();
-
-                // Continue continuous mode if active
-                if (isContinuousMode) {
-                    setTimeout(startWorkoutVoiceInput, 2000);
-                }
             };
 
             recognition.onend = () => {
                 console.log('Speech recognition ended');
-                if (!isContinuousMode) {
-                    resetWorkoutMicButton();
-                }
+                resetWorkoutMicButton();
             };
 
             return true;
@@ -1491,10 +1511,6 @@
                     updateVoiceStatus(result.error || 'Could not understand. Please try again.', 'error');
                     speakConfirmation(result.error || 'Could not understand');
                     resetWorkoutMicButton();
-
-                    if (isContinuousMode) {
-                        setTimeout(startWorkoutVoiceInput, 2000);
-                    }
                     return;
                 }
 
@@ -1504,10 +1520,6 @@
                     updateVoiceStatus('Incomplete information. Please try again.', 'error');
                     speakConfirmation('Incomplete information');
                     resetWorkoutMicButton();
-
-                    if (isContinuousMode) {
-                        setTimeout(startWorkoutVoiceInput, 2000);
-                    }
                     return;
                 }
 
@@ -1539,29 +1551,16 @@
                             micBtn.classList.remove('success');
                         }, 1500);
                     }
-
-                    // Continue continuous mode
-                    if (isContinuousMode) {
-                        setTimeout(startWorkoutVoiceInput, 2500);
-                    }
                 } else {
                     updateVoiceStatus('Could not find exercise inputs', 'error');
                     speakConfirmation('Error finding exercise');
                     resetWorkoutMicButton();
-
-                    if (isContinuousMode) {
-                        setTimeout(startWorkoutVoiceInput, 2000);
-                    }
                 }
             } catch (error) {
                 console.error('Error parsing workout voice input:', error);
                 updateVoiceStatus('Error processing voice input', 'error');
                 speakConfirmation('Error processing voice input');
                 resetWorkoutMicButton();
-
-                if (isContinuousMode) {
-                    setTimeout(startWorkoutVoiceInput, 2000);
-                }
             }
         }
 
@@ -1646,35 +1645,6 @@
             const micBtn = document.getElementById('workoutMicBtn');
             if (micBtn) {
                 micBtn.classList.remove('listening', 'success', 'error');
-            }
-        }
-
-        // Toggle continuous mode
-        function toggleHandsFreeMode() {
-            if (!recognition && !initVoiceRecognition()) {
-                alert('Voice input is not supported in your browser. Please try Chrome or Safari.');
-                return;
-            }
-
-            isContinuousMode = !isContinuousMode;
-            const toggle = document.getElementById('handsFreeToggle');
-
-            if (isContinuousMode) {
-                toggle.classList.add('active');
-                updateVoiceStatus('🎙️ Continuous Mode Active', 'listening');
-                speakConfirmation('Continuous mode activated');
-                setTimeout(startWorkoutVoiceInput, 1500);
-            } else {
-                toggle.classList.remove('active');
-                updateVoiceStatus('Continuous Mode Deactivated', '');
-                speakConfirmation('Continuous mode deactivated');
-                if (recognition) {
-                    try {
-                        recognition.stop();
-                    } catch (e) {
-                        console.error('Error stopping recognition:', e);
-                    }
-                }
             }
         }
 

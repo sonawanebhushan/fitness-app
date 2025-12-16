@@ -1012,6 +1012,17 @@
                 exercises: []
             };
 
+            // Parse sets value (handle "4+1" format or regular numbers)
+            const parseSetCount = (sets) => {
+                if (typeof sets === 'number') return sets;
+                const str = String(sets);
+                // Check if it's a format like "4+1"
+                if (str.includes('+')) {
+                    return str.split('+').reduce((sum, num) => sum + parseInt(num.trim()), 0);
+                }
+                return parseInt(str) || 0;
+            };
+
             let html = `
                 <div class="workout-header">
                     <h2>${dayData.name}</h2>
@@ -1098,17 +1109,6 @@
                         </div>
                         <div class="sets-grid" id="sets-${exercise.id}">
                 `;
-
-                // Parse sets value (handle "4+1" format or regular numbers)
-                const parseSetCount = (sets) => {
-                    if (typeof sets === 'number') return sets;
-                    const str = String(sets);
-                    // Check if it's a format like "4+1"
-                    if (str.includes('+')) {
-                        return str.split('+').reduce((sum, num) => sum + parseInt(num.trim()), 0);
-                    }
-                    return parseInt(str) || 0;
-                };
 
                 const totalSets = parseSetCount(specs.sets);
 

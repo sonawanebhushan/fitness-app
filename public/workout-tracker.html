@@ -1575,11 +1575,40 @@
             speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.1;
-            utterance.pitch = 1.0;
-            utterance.volume = 0.8;
+
+            // Get available voices and select a female voice
+            const voices = speechSynthesis.getVoices();
+
+            // Try to find a nice female voice (prefer Samantha on iOS, Google UK English Female, etc.)
+            const femaleVoice = voices.find(voice =>
+                voice.name.includes('Samantha') || // iOS
+                voice.name.includes('Female') ||
+                voice.name.includes('Woman') ||
+                voice.name.includes('Karen') || // macOS
+                voice.name.includes('Victoria') || // macOS
+                voice.name.includes('Google UK English Female') || // Chrome
+                voice.name.includes('Microsoft Zira') || // Windows
+                (voice.name.includes('en') && voice.name.includes('female'))
+            ) || voices.find(voice => voice.gender === 'female') || voices[0];
+
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+                console.log('Using voice:', femaleVoice.name);
+            }
+
+            utterance.rate = 1.0; // Normal speed
+            utterance.pitch = 1.1; // Slightly higher pitch for pleasantness
+            utterance.volume = 0.9;
 
             speechSynthesis.speak(utterance);
+        }
+
+        // Load voices on page load (some browsers need this)
+        if (speechSynthesis) {
+            speechSynthesis.onvoiceschanged = () => {
+                const voices = speechSynthesis.getVoices();
+                console.log('Available voices:', voices.map(v => v.name));
+            };
         }
 
         // Update voice status display

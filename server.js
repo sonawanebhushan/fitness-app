@@ -15,6 +15,12 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 // Initialize OpenAI client
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 
+if (openai) {
+  console.log('✅ OpenAI client initialized successfully');
+} else {
+  console.warn('⚠️  OpenAI API key not found - voice input will not work');
+}
+
 // PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -568,8 +574,15 @@ NO explanations, just JSON.`;
 
   } catch (error) {
     console.error('OpenAI API error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.status,
+      type: error.type,
+      code: error.code
+    });
+
     res.status(500).json({
-      error: 'Failed to parse voice input',
+      error: 'Failed to parse voice input: ' + (error.message || 'Unknown error'),
       fallback: true
     });
   }

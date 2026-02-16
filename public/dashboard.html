@@ -454,7 +454,6 @@
             <div class="user-info">
                 <span class="username" id="username">Loading...</span>
                 <button class="btn-edit" onclick="openEditModal()">Edit Profile</button>
-                <button class="btn-logout" onclick="logout()">Logout</button>
             </div>
         </div>
 
@@ -572,8 +571,7 @@
                 const response = await fetch('/api/profile');
 
                 if (!response.ok) {
-                    // If not authenticated, redirect to login
-                    window.location.href = '/';
+                    console.error('Failed to load profile');
                     return;
                 }
 
@@ -582,7 +580,6 @@
                 displayProfile(data);
             } catch (error) {
                 console.error('Error loading profile:', error);
-                window.location.href = '/';
             }
         }
 
@@ -682,16 +679,6 @@
             const modal = document.getElementById('editModal');
             if (event.target === modal) {
                 closeEditModal();
-            }
-        }
-
-        async function logout() {
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Error logging out:', error);
-                window.location.href = '/';
             }
         }
 

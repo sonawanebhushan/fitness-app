@@ -33,26 +33,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware to verify JWT token
+// Auth removed - always use default user
 const authenticateToken = (req, res, next) => {
-  const token = req.cookies.token;
-
-  if (!token) {
-    return res.status(401).json({ error: 'Access denied. Please login.' });
-  }
-
-  try {
-    const verified = jwt.verify(token, JWT_SECRET);
-    req.user = verified;
-    next();
-  } catch (error) {
-    res.status(400).json({ error: 'Invalid token' });
-  }
+  req.user = { username: 'amar' };
+  next();
 };
 
 // Routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.redirect('/dashboard');
 });
 
 app.post('/api/login', async (req, res) => {

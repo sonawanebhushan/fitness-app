@@ -431,7 +431,6 @@
             <div class="nav-buttons">
                 <button class="btn btn-secondary" onclick="window.location.href='/dashboard'">Dashboard</button>
                 <button class="btn" onclick="window.location.href='/workout-tracker'">Workout Tracker</button>
-                <button class="btn btn-secondary" onclick="logout()">Logout</button>
             </div>
         </div>
 
@@ -681,16 +680,6 @@
         function today() {
             currentDate = new Date();
             loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear()).then(renderCalendar);
-        }
-
-        async function logout() {
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Logout error:', error);
-                window.location.href = '/';
-            }
         }
 
         // Initialize

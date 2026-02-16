@@ -829,7 +829,6 @@
                     </select>
                 </div>
                 <button class="btn btn-secondary" onclick="goToDashboard()">Back to Dashboard</button>
-                <button class="btn btn-secondary" onclick="logout()">Logout</button>
             </div>
         </div>
 
@@ -1406,15 +1405,6 @@
 
         function goToDashboard() {
             window.location.href = '/dashboard';
-        }
-
-        async function logout() {
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
         }
 
         // Voice Input Functionality

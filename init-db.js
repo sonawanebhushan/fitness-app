@@ -56,12 +56,14 @@ async function initializeDatabase() {
     `);
     console.log('✓ Workout logs table created');
 
-    // Insert default users (amar and prem)
+    // Insert default users
     await client.query(`
       INSERT INTO users (username, password, name, age, weight, height, muscle_mass, body_fat, goal)
       VALUES
         ('amar', '$2a$10$hBBax2vceby7vP6zrrNNbeCdvdfpGRQvUTQ2oHV/Q5NZopK9KIkhK', 'Amar Kumar', 28, '165 lbs', '5''9"', '70 lbs', '15%', 'Build muscle and increase strength'),
-        ('prem', '$2a$10$N2muACox6NFgqCc3qfZSk.s4/gtKwtZZ220PqLQ65aljofoZ5fvcO', 'Prem Singh', 32, '180 lbs', '5''11"', '77 lbs', '18%', 'Lose weight and improve cardiovascular health')
+        ('prem', '$2a$10$N2muACox6NFgqCc3qfZSk.s4/gtKwtZZ220PqLQ65aljofoZ5fvcO', 'Prem Singh', 32, '180 lbs', '5''11"', '77 lbs', '18%', 'Lose weight and improve cardiovascular health'),
+        ('arun', '$2a$10$hBBax2vceby7vP6zrrNNbeCdvdfpGRQvUTQ2oHV/Q5NZopK9KIkhK', 'Arun', 27, '155 lbs', '5''8"', '65 lbs', '14%', 'Build lean muscle and improve overall fitness'),
+        ('bhushan', '$2a$10$N2muACox6NFgqCc3qfZSk.s4/gtKwtZZ220PqLQ65aljofoZ5fvcO', 'Bhushan', 28, '170 lbs', '5''10"', '72 lbs', '16%', 'Gain strength and build muscle mass')
       ON CONFLICT (username) DO NOTHING
     `);
     console.log('✓ Default users inserted');
@@ -71,7 +73,9 @@ async function initializeDatabase() {
       INSERT INTO workout_status (username, current_phase, current_week)
       VALUES
         ('amar', 1, 1),
-        ('prem', 1, 1)
+        ('prem', 1, 1),
+        ('arun', 1, 1),
+        ('bhushan', 1, 1)
       ON CONFLICT (username) DO NOTHING
     `);
     console.log('✓ Default workout status inserted');

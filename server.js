@@ -33,14 +33,32 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth removed - always use default user
+// Read active user from cookie
 const authenticateToken = (req, res, next) => {
-  req.user = { username: 'amar' };
+  const activeUser = req.cookies.activeUser;
+  if (!activeUser) {
+    // For API routes, return 401; for pages, redirect to home
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'No user selected' });
+    }
+    return res.redirect('/');
+  }
+  req.user = { username: activeUser };
   next();
 };
 
 // Routes
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Set active user and redirect to dashboard
+app.get('/select-user/:username', (req, res) => {
+  const { username } = req.params;
+  res.cookie('activeUser', username, {
+    httpOnly: false,
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  });
   res.redirect('/dashboard');
 });
 
@@ -586,18 +604,13 @@ app.listen(PORT, async () => {
 
 Server URL: http://localhost:${PORT}
 
-User Credentials:
+Accounts:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-User 1:
-  Username: amar
-  Password: amar123!@#
-
-User 2:
-  Username: prem
-  Password: prem456$%^
+  - Arun
+  - Bhushan
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Open http://localhost:${PORT} in your browser to login!
+Open http://localhost:${PORT} in your browser to get started!
   `);
 
   // Initialize database if needed

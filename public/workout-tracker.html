@@ -558,7 +558,7 @@
                 const response = await fetch('/api/workout/logs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ exerciseId, phase: currentPhase, week: currentWeek, sets })
+                    body: JSON.stringify({ exerciseId, phase: currentPhase, week: currentWeek, sets, date: document.getElementById('workoutDate').value })
                 });
                 const result = await response.json();
                 if (result.success) {

@@ -360,7 +360,7 @@ app.get('/api/workout/logs/:day', authenticateToken, async (req, res) => {
 
 // Save workout log for an exercise
 app.post('/api/workout/logs', authenticateToken, async (req, res) => {
-  const { exerciseId, phase, week, sets } = req.body;
+  const { exerciseId, phase, week, sets, date } = req.body;
 
   try {
     // Validate required fields
@@ -368,14 +368,26 @@ app.post('/api/workout/logs', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: exerciseId, phase, week, sets' });
     }
 
+    const loggedAt = date ? `${date} 08:00:00` : null;
+
     // Use ON CONFLICT to update if already exists (upsert)
-    await pool.query(
-      `INSERT INTO workout_logs (username, exercise_id, phase, week, sets)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (username, exercise_id, phase, week)
-       DO UPDATE SET sets = $5, logged_at = CURRENT_TIMESTAMP`,
-      [req.user.username, exerciseId, parseInt(phase), parseInt(week), JSON.stringify(sets)]
-    );
+    if (loggedAt) {
+      await pool.query(
+        `INSERT INTO workout_logs (username, exercise_id, phase, week, sets, logged_at)
+         VALUES ($1, $2, $3, $4, $5, $6::timestamp)
+         ON CONFLICT (username, exercise_id, phase, week)
+         DO UPDATE SET sets = $5, logged_at = $6::timestamp`,
+        [req.user.username, exerciseId, parseInt(phase), parseInt(week), JSON.stringify(sets), loggedAt]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO workout_logs (username, exercise_id, phase, week, sets)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (username, exercise_id, phase, week)
+         DO UPDATE SET sets = $5, logged_at = CURRENT_TIMESTAMP`,
+        [req.user.username, exerciseId, parseInt(phase), parseInt(week), JSON.stringify(sets)]
+      );
+    }
 
     res.json({
       success: true,

@@ -3,434 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workout Calendar - Workout Buddy</title>
+    <title>Calendar - Workout Buddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
             min-height: 100vh;
-            padding: 20px;
+            color: #fff;
+        }
+
+        .bg-gradient {
+            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 20% 30%, rgba(99,102,241,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(168,85,247,0.06) 0%, transparent 50%);
+            z-index: 0;
+        }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px; z-index: 1;
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            position: relative; z-index: 2;
+            max-width: 1100px; margin: 0 auto; padding: 24px 20px;
         }
 
+        /* Header */
         .header {
-            background: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 0; margin-bottom: 32px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-wrap: wrap; gap: 16px;
         }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; font-size: 16px; font-weight: 700;
+        }
+        .header-title { font-size: 1.1rem; font-weight: 700; }
 
-        .header h1 {
-            color: #667eea;
-            font-size: 2em;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-        }
+        .nav-buttons { display: flex; gap: 10px; }
 
         .btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: transform 0.2s;
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.7);
+            border-radius: 8px; cursor: pointer;
+            font-family: inherit; font-size: 0.85rem; font-weight: 500;
+            transition: all 0.2s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
         }
-
-        .btn:hover {
-            transform: translateY(-2px);
+        .btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fff; }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #7c3aed);
+            border: 1px solid rgba(99,102,241,0.3); color: #fff;
         }
+        .btn-primary:hover { box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
 
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
+        /* Calendar */
         .calendar-container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 32px; border-radius: 16px;
         }
 
         .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 28px;
         }
-
         .calendar-header h2 {
-            font-size: 1.8em;
-            color: #333;
+            font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em;
         }
-
-        .month-nav {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
+        .month-nav { display: flex; gap: 8px; align-items: center; }
         .month-nav button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1em;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6); padding: 6px 14px;
+            border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+            font-family: inherit; font-weight: 500;
+            transition: all 0.2s;
         }
+        .month-nav button:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
         .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
         }
-
         .day-header {
-            text-align: center;
-            font-weight: bold;
-            color: #667eea;
-            padding: 10px;
-            font-size: 0.9em;
+            text-align: center; font-weight: 600;
+            color: rgba(255,255,255,0.3); padding: 8px; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.06em;
         }
-
         .calendar-day {
             aspect-ratio: 1;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 8px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-            background: white;
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 10px; padding: 8px;
+            cursor: pointer; position: relative;
+            transition: all 0.2s; background: rgba(255,255,255,0.02);
         }
-
         .calendar-day:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.1);
+            transform: scale(1.03);
         }
-
-        .calendar-day.other-month {
-            opacity: 0.3;
-            pointer-events: none;
-        }
-
+        .calendar-day.other-month { opacity: 0.15; pointer-events: none; }
         .calendar-day.today {
-            border-color: #667eea;
-            border-width: 3px;
+            border-color: #6366f1; border-width: 2px;
         }
+        .day-number { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.7); }
 
-        .day-number {
-            font-size: 0.9em;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .workout-indicator {
-            margin-top: 5px;
-            font-size: 0.7em;
-        }
-
+        .workout-indicator { margin-top: 4px; }
         .workout-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin: 2px;
+            width: 6px; height: 6px; border-radius: 50%;
+            display: inline-block; margin: 1px;
         }
-
         .completion-bar {
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
-            margin-top: 5px;
-            overflow: hidden;
+            height: 3px; background: rgba(255,255,255,0.06);
+            border-radius: 2px; margin-top: 4px; overflow: hidden;
         }
-
         .completion-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, #6366f1, #a855f7);
             transition: width 0.3s;
         }
-
         .completion-text {
-            font-size: 0.7em;
-            color: #666;
-            margin-top: 2px;
+            font-size: 0.6rem; color: rgba(255,255,255,0.35);
+            margin-top: 2px; font-weight: 500;
         }
 
-        /* Color coding for different workout types */
-        .workout-chest-back { background-color: #ff6b6b; }
-        .workout-lower-1 { background-color: #4ecdc4; }
-        .workout-shoulders-arms { background-color: #45b7d1; }
-        .workout-posterior { background-color: #96ceb4; }
-        .workout-chest-back-2 { background-color: #ffeaa7; }
-        .workout-lower-2 { background-color: #a29bfe; }
-        .workout-thursday { background-color: #fd79a8; }
+        .workout-chest-back { background-color: #f87171; }
+        .workout-lower-1 { background-color: #34d399; }
+        .workout-shoulders-arms { background-color: #38bdf8; }
+        .workout-posterior { background-color: #a3e635; }
+        .workout-chest-back-2 { background-color: #fbbf24; }
+        .workout-lower-2 { background-color: #a78bfa; }
+        .workout-thursday { background-color: #f472b6; }
 
+        /* Legend */
         .legend {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            margin-top: 28px; padding: 20px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 12px;
         }
-
         .legend h3 {
-            margin-bottom: 15px;
-            color: #333;
+            margin-bottom: 14px; font-size: 0.8rem; font-weight: 600;
+            color: rgba(255,255,255,0.4); text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
-
-        .legend-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
+        .legend-items { display: flex; flex-wrap: wrap; gap: 16px; }
         .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.8rem; color: rgba(255,255,255,0.5);
         }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-        .legend-dot {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            z-index: 100;
         }
-
+        .modal-overlay.show {
+            display: flex; justify-content: center; align-items: center;
+        }
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1);
+            padding: 32px; border-radius: 20px;
+            max-width: 550px; width: 90%; max-height: 80vh; overflow-y: auto;
+            animation: modalUp 0.3s cubic-bezier(0.16,1,0.3,1);
         }
-
-        .modal.show {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        @keyframes modalUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px;
         }
-
-        .modal-header h2 {
-            color: #667eea;
-        }
-
+        .modal-header h2 { font-size: 1.2rem; font-weight: 700; }
         .close-modal {
-            background: none;
-            border: none;
-            font-size: 2em;
-            cursor: pointer;
-            color: #999;
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.06); border: none;
+            border-radius: 8px; color: rgba(255,255,255,0.5);
+            font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
         }
-
-        .workout-summary {
-            margin-top: 15px;
-        }
+        .close-modal:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
         .workout-item {
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 10px;
+            padding: 16px; background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px; margin-bottom: 10px;
         }
+        .workout-item h4 { color: #fff; font-size: 0.95rem; margin-bottom: 6px; }
+        .workout-item p { color: rgba(255,255,255,0.45); font-size: 0.8rem; }
 
-        .workout-item h4 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .workout-item p {
-            color: #666;
-            font-size: 0.9em;
-        }
+        .modal-empty { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
 
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .container {
-                max-width: 100%;
-            }
-
-            .header {
-                padding: 15px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            .header h1 {
-                font-size: 1.5em;
-            }
-
-            .nav-buttons {
-                width: 100%;
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .btn {
-                width: 100%;
-                font-size: 16px;
-                padding: 12px;
-                min-height: 44px;
-            }
-
-            .btn-secondary {
-                width: 100%;
-            }
-
-            .calendar-container {
-                padding: 15px;
-            }
-
-            .calendar-header {
-                flex-direction: column;
-                gap: 15px;
-                margin-bottom: 20px;
-            }
-
-            .calendar-header h2 {
-                font-size: 1.3em;
-            }
-
-            .month-nav {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .month-nav button {
-                font-size: 16px;
-                padding: 10px 16px;
-                min-height: 44px;
-            }
-
-            .calendar-grid {
-                gap: 5px;
-            }
-
-            .calendar-day {
-                padding: 4px;
-                min-height: 60px;
-            }
-
-            .day-number {
-                font-size: 0.85em;
-            }
-
-            .workout-indicator {
-                font-size: 0.65em;
-            }
-
-            .workout-dot {
-                width: 6px;
-                height: 6px;
-            }
-
-            .completion-bar {
-                height: 3px;
-                margin-top: 3px;
-            }
-
-            .completion-text {
-                font-size: 0.65em;
-            }
-
-            .legend {
-                padding: 15px;
-                margin-top: 20px;
-            }
-
-            .legend h3 {
-                font-size: 1.1em;
-                margin-bottom: 12px;
-            }
-
-            .legend-items {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .legend-item {
-                font-size: 14px;
-            }
-
-            .modal-content {
-                padding: 20px;
-                width: 95%;
-                max-height: 85vh;
-            }
-
-            .modal-header h2 {
-                font-size: 1.2em;
-            }
-
-            .close-modal {
-                font-size: 1.8em;
-            }
-
-            .workout-item {
-                padding: 12px;
-            }
-
-            .workout-item h4 {
-                font-size: 1em;
-            }
-
-            .workout-item p {
-                font-size: 0.85em;
-            }
+            .container { padding: 16px; }
+            .header { flex-direction: column; align-items: flex-start; }
+            .nav-buttons { width: 100%; }
+            .btn { font-size: 16px; padding: 12px; min-height: 44px; flex: 1; justify-content: center; }
+            .calendar-container { padding: 16px; }
+            .calendar-header { flex-direction: column; gap: 12px; }
+            .calendar-header h2 { font-size: 1.2rem; }
+            .month-nav { width: 100%; justify-content: space-between; }
+            .month-nav button { font-size: 16px; padding: 10px 14px; min-height: 44px; }
+            .calendar-grid { gap: 4px; }
+            .calendar-day { padding: 4px; min-height: 55px; }
+            .day-number { font-size: 0.75rem; }
+            .workout-dot { width: 4px; height: 4px; }
+            .legend-items { flex-direction: column; gap: 8px; }
+            .modal { padding: 24px; width: 95%; }
         }
     </style>
 </head>
 <body>
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
     <div class="container">
         <div class="header">
-            <h1>📅 Workout Calendar</h1>
+            <div class="header-left">
+                <a href="/dashboard" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
+                    <div class="header-logo">W</div>
+                    <span class="header-title">Calendar</span>
+                </a>
+            </div>
             <div class="nav-buttons">
-                <button class="btn btn-secondary" onclick="window.location.href='/dashboard'">Dashboard</button>
-                <button class="btn" onclick="window.location.href='/workout-tracker'">Workout Tracker</button>
+                <a href="/dashboard" class="btn">Dashboard</a>
+                <a href="/workout-tracker" class="btn btn-primary">Workout Tracker</a>
             </div>
         </div>
 
@@ -438,58 +253,36 @@
             <div class="calendar-header">
                 <h2 id="currentMonth"></h2>
                 <div class="month-nav">
-                    <button onclick="previousMonth()">◀</button>
+                    <button onclick="previousMonth()">&larr;</button>
                     <button onclick="today()">Today</button>
-                    <button onclick="nextMonth()">▶</button>
+                    <button onclick="nextMonth()">&rarr;</button>
                 </div>
             </div>
 
-            <div class="calendar-grid" id="calendarGrid">
-                <!-- Calendar will be populated by JavaScript -->
-            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
 
             <div class="legend">
-                <h3>Workout Day Types</h3>
+                <h3>Workout Types</h3>
                 <div class="legend-items">
-                    <div class="legend-item">
-                        <div class="legend-dot workout-chest-back"></div>
-                        <span>Chest & Back</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot workout-lower-1"></div>
-                        <span>Lower Body 1</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot workout-shoulders-arms"></div>
-                        <span>Shoulders & Arms</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot workout-posterior"></div>
-                        <span>Posterior Chain</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot workout-chest-back-2"></div>
-                        <span>Chest & Back 2</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot workout-lower-2"></div>
-                        <span>Lower Body 2</span>
-                    </div>
+                    <div class="legend-item"><div class="legend-dot workout-chest-back"></div><span>Chest & Back</span></div>
+                    <div class="legend-item"><div class="legend-dot workout-lower-1"></div><span>Lower Body 1</span></div>
+                    <div class="legend-item"><div class="legend-dot workout-shoulders-arms"></div><span>Shoulders & Arms</span></div>
+                    <div class="legend-item"><div class="legend-dot workout-posterior"></div><span>Posterior Chain</span></div>
+                    <div class="legend-item"><div class="legend-dot workout-chest-back-2"></div><span>Chest & Back 2</span></div>
+                    <div class="legend-item"><div class="legend-dot workout-lower-2"></div><span>Lower Body 2</span></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal for day details -->
-    <div class="modal" id="dayModal">
-        <div class="modal-content">
+    <!-- Modal -->
+    <div class="modal-overlay" id="dayModal">
+        <div class="modal">
             <div class="modal-header">
                 <h2 id="modalDate"></h2>
                 <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
-            <div id="modalContent">
-                <!-- Content will be populated by JavaScript -->
-            </div>
+            <div id="modalContent"></div>
         </div>
     </div>
 
@@ -498,23 +291,17 @@
         let workoutData = null;
         let workoutLogs = {};
 
-        // Day type to class mapping
         const dayTypeColors = {
-            'monday': 'workout-chest-back',
-            'tuesday': 'workout-lower-1',
-            'wednesday': 'workout-shoulders-arms',
-            'thursday': 'workout-thursday',
-            'friday': 'workout-posterior',
-            'saturday': 'workout-chest-back-2'
+            'monday': 'workout-chest-back', 'tuesday': 'workout-lower-1',
+            'wednesday': 'workout-shoulders-arms', 'thursday': 'workout-thursday',
+            'friday': 'workout-posterior', 'saturday': 'workout-chest-back-2'
         };
 
         async function loadWorkoutData() {
             try {
                 const response = await fetch('/api/workout/program');
                 workoutData = await response.json();
-            } catch (error) {
-                console.error('Error loading workout data:', error);
-            }
+            } catch (error) { console.error('Error loading workout data:', error); }
         }
 
         async function loadWorkoutLogs(month, year) {
@@ -522,74 +309,56 @@
                 const response = await fetch(`/api/calendar/logs?month=${month}&year=${year}`);
                 const data = await response.json();
                 workoutLogs = data.logs || {};
-            } catch (error) {
-                console.error('Error loading workout logs:', error);
-                workoutLogs = {};
-            }
+            } catch (error) { console.error('Error loading workout logs:', error); workoutLogs = {}; }
         }
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-
-            // Update header
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                               'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthNames = ['January','February','March','April','May','June',
+                               'July','August','September','October','November','December'];
             document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
 
-            // Get first day of month and number of days
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
             const startingDayOfWeek = firstDay.getDay();
 
-            // Clear grid
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
 
-            // Add day headers
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(day => {
+            ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(day => {
                 const header = document.createElement('div');
                 header.className = 'day-header';
                 header.textContent = day;
                 grid.appendChild(header);
             });
 
-            // Add empty cells for days before month starts
             for (let i = 0; i < startingDayOfWeek; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'calendar-day other-month';
-                grid.appendChild(emptyDay);
+                const empty = document.createElement('div');
+                empty.className = 'calendar-day other-month';
+                grid.appendChild(empty);
             }
 
-            // Add days of month
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day';
+                const el = document.createElement('div');
+                el.className = 'calendar-day';
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-                // Check if it's today
                 if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
-                    dayElement.classList.add('today');
+                    el.classList.add('today');
                 }
 
-                // Day number
                 const dayNumber = document.createElement('div');
                 dayNumber.className = 'day-number';
                 dayNumber.textContent = day;
-                dayElement.appendChild(dayNumber);
+                el.appendChild(dayNumber);
 
-                // Check for workouts on this day
                 if (workoutLogs[dateStr]) {
                     const logData = workoutLogs[dateStr];
-
-                    // Add colored dots for workout types
                     const indicator = document.createElement('div');
                     indicator.className = 'workout-indicator';
-
                     if (logData.workoutTypes) {
                         logData.workoutTypes.forEach(type => {
                             const dot = document.createElement('span');
@@ -597,98 +366,81 @@
                             indicator.appendChild(dot);
                         });
                     }
-                    dayElement.appendChild(indicator);
+                    el.appendChild(indicator);
 
-                    // Add completion bar
                     if (logData.completion !== undefined) {
-                        const completionBar = document.createElement('div');
-                        completionBar.className = 'completion-bar';
-                        const completionFill = document.createElement('div');
-                        completionFill.className = 'completion-fill';
-                        completionFill.style.width = `${logData.completion}%`;
-                        completionBar.appendChild(completionFill);
-                        dayElement.appendChild(completionBar);
+                        const bar = document.createElement('div');
+                        bar.className = 'completion-bar';
+                        const fill = document.createElement('div');
+                        fill.className = 'completion-fill';
+                        fill.style.width = `${logData.completion}%`;
+                        bar.appendChild(fill);
+                        el.appendChild(bar);
 
-                        const completionText = document.createElement('div');
-                        completionText.className = 'completion-text';
-                        completionText.textContent = `${Math.round(logData.completion)}%`;
-                        dayElement.appendChild(completionText);
+                        const text = document.createElement('div');
+                        text.className = 'completion-text';
+                        text.textContent = `${Math.round(logData.completion)}%`;
+                        el.appendChild(text);
                     }
                 }
 
-                dayElement.onclick = () => showDayDetails(dateStr, day);
-                grid.appendChild(dayElement);
+                el.onclick = () => showDayDetails(dateStr, day);
+                grid.appendChild(el);
             }
         }
 
         function showDayDetails(dateStr, day) {
             const modal = document.getElementById('dayModal');
-            const modalDate = document.getElementById('modalDate');
-            const modalContent = document.getElementById('modalContent');
-
-            modalDate.textContent = `Workouts on ${dateStr}`;
+            document.getElementById('modalDate').textContent = dateStr;
+            const content = document.getElementById('modalContent');
 
             if (workoutLogs[dateStr]) {
                 const logData = workoutLogs[dateStr];
-                let html = '<div class="workout-summary">';
-
+                let html = '';
                 if (logData.exercises && logData.exercises.length > 0) {
                     logData.exercises.forEach(exercise => {
-                        html += `
-                            <div class="workout-item">
-                                <h4>${exercise.name}</h4>
-                                <p>Sets completed: ${exercise.setsCompleted} / ${exercise.totalSets}</p>
-                                <p>Phase ${exercise.phase}, Week ${exercise.week}</p>
-                            </div>
-                        `;
+                        html += `<div class="workout-item">
+                            <h4>${exercise.name}</h4>
+                            <p>Sets: ${exercise.setsCompleted} / ${exercise.totalSets} &middot; Phase ${exercise.phase}, Week ${exercise.week}</p>
+                        </div>`;
                     });
                 } else {
-                    html += '<p>No workout data logged for this day.</p>';
+                    html = '<p class="modal-empty">No workout data logged.</p>';
                 }
-
-                html += '</div>';
-                html += `<button class="btn" style="margin-top: 20px;" onclick="goToWorkoutTracker('${dateStr}')">Log Workout</button>`;
-                modalContent.innerHTML = html;
+                html += `<a href="/workout-tracker" class="btn btn-primary" style="margin-top:16px; width:100%; justify-content:center;">Log Workout</a>`;
+                content.innerHTML = html;
             } else {
-                modalContent.innerHTML = `
-                    <p>No workouts logged for this day.</p>
-                    <button class="btn" style="margin-top: 20px;" onclick="goToWorkoutTracker('${dateStr}')">Log Workout</button>
-                `;
+                content.innerHTML = `
+                    <p class="modal-empty">No workouts logged for this day.</p>
+                    <a href="/workout-tracker" class="btn btn-primary" style="margin-top:16px; width:100%; justify-content:center;">Log Workout</a>`;
             }
-
             modal.classList.add('show');
         }
 
-        function closeModal() {
-            document.getElementById('dayModal').classList.remove('show');
-        }
+        function closeModal() { document.getElementById('dayModal').classList.remove('show'); }
 
-        function goToWorkoutTracker(dateStr) {
-            window.location.href = '/workout-tracker';
-        }
+        window.onclick = function(e) {
+            if (e.target === document.getElementById('dayModal')) closeModal();
+        };
 
         function previousMonth() {
             currentDate.setMonth(currentDate.getMonth() - 1);
-            loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear()).then(renderCalendar);
+            loadWorkoutLogs(currentDate.getMonth()+1, currentDate.getFullYear()).then(renderCalendar);
         }
-
         function nextMonth() {
             currentDate.setMonth(currentDate.getMonth() + 1);
-            loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear()).then(renderCalendar);
+            loadWorkoutLogs(currentDate.getMonth()+1, currentDate.getFullYear()).then(renderCalendar);
         }
-
         function today() {
             currentDate = new Date();
-            loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear()).then(renderCalendar);
+            loadWorkoutLogs(currentDate.getMonth()+1, currentDate.getFullYear()).then(renderCalendar);
         }
 
-        // Initialize
         async function init() {
             await loadWorkoutData();
-            await loadWorkoutLogs(currentDate.getMonth() + 1, currentDate.getFullYear());
+            await loadWorkoutLogs(currentDate.getMonth()+1, currentDate.getFullYear());
             renderCalendar();
         }
-
         init();
     </script>
 </body>

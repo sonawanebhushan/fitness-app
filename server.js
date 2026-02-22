@@ -399,6 +399,129 @@ app.post('/api/workout/logs', authenticateToken, async (req, res) => {
   }
 });
 
+// Get workout summary for a day (volume, PRs, history)
+app.get('/api/workout/summary/:day', authenticateToken, async (req, res) => {
+  const { day } = req.params;
+  const { phase, week, date } = req.query;
+
+  try {
+    const dayPrefix = day.substring(0, 3);
+
+    // Get current day's logs
+    let currentQuery = 'SELECT exercise_id, sets, logged_at FROM workout_logs WHERE username = $1 AND exercise_id LIKE $2';
+    const currentParams = [req.user.username, `${dayPrefix}%`];
+    if (phase) { currentQuery += ` AND phase = $${currentParams.length + 1}`; currentParams.push(parseInt(phase)); }
+    if (week) { currentQuery += ` AND week = $${currentParams.length + 1}`; currentParams.push(parseInt(week)); }
+    if (date) { currentQuery += ` AND logged_at::date = $${currentParams.length + 1}::date`; currentParams.push(date); }
+    const currentResult = await pool.query(currentQuery, currentParams);
+
+    // Get ALL historical logs for these exercises (for PR detection)
+    const allLogsResult = await pool.query(
+      'SELECT exercise_id, phase, week, sets, logged_at FROM workout_logs WHERE username = $1 AND exercise_id LIKE $2 ORDER BY logged_at ASC',
+      [req.user.username, `${dayPrefix}%`]
+    );
+
+    // Build per-exercise history
+    const exerciseHistory = {};
+    allLogsResult.rows.forEach(row => {
+      if (!exerciseHistory[row.exercise_id]) exerciseHistory[row.exercise_id] = [];
+      exerciseHistory[row.exercise_id].push({
+        phase: row.phase, week: row.week, sets: row.sets,
+        date: row.logged_at
+      });
+    });
+
+    // Compute summary for current session
+    let totalVolume = 0;
+    let totalSets = 0;
+    let completedSets = 0;
+    const exerciseSummaries = {};
+    const prs = [];
+
+    currentResult.rows.forEach(row => {
+      const sets = row.sets || [];
+      let exerciseVolume = 0;
+      let exerciseMaxWeight = 0;
+      let exerciseBestSet = null;
+      let exerciseSetsCompleted = 0;
+
+      sets.forEach(s => {
+        const w = parseFloat(s.weight) || 0;
+        const r = parseInt(s.reps) || 0;
+        totalSets++;
+        if (w > 0 || r > 0) {
+          completedSets++;
+          exerciseSetsCompleted++;
+        }
+        const setVolume = w * r;
+        exerciseVolume += setVolume;
+        if (w > exerciseMaxWeight) {
+          exerciseMaxWeight = w;
+          exerciseBestSet = { weight: w, reps: r };
+        }
+      });
+
+      totalVolume += exerciseVolume;
+
+      // Check for PRs against all history
+      const history = exerciseHistory[row.exercise_id] || [];
+      let allTimeMaxWeight = 0;
+      let allTimeMaxVolume = 0;
+      let allTimeBestSetVolume = 0;
+
+      history.forEach(h => {
+        if (date && new Date(h.date).toISOString().split('T')[0] === date) return; // skip current session
+        (h.sets || []).forEach(s => {
+          const w = parseFloat(s.weight) || 0;
+          const r = parseInt(s.reps) || 0;
+          if (w > allTimeMaxWeight) allTimeMaxWeight = w;
+          const sv = w * r;
+          if (sv > allTimeBestSetVolume) allTimeBestSetVolume = sv;
+        });
+        const hv = (h.sets || []).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0);
+        if (hv > allTimeMaxVolume) allTimeMaxVolume = hv;
+      });
+
+      // Detect PRs
+      if (exerciseMaxWeight > allTimeMaxWeight && exerciseMaxWeight > 0) {
+        prs.push({ exerciseId: row.exercise_id, type: 'weight', value: exerciseMaxWeight, previous: allTimeMaxWeight });
+      }
+      if (exerciseVolume > allTimeMaxVolume && exerciseVolume > 0) {
+        prs.push({ exerciseId: row.exercise_id, type: 'volume', value: exerciseVolume, previous: allTimeMaxVolume });
+      }
+      const currentBestSetVolume = sets.reduce((max, s) => {
+        const sv = (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0);
+        return sv > max ? sv : max;
+      }, 0);
+      if (currentBestSetVolume > allTimeBestSetVolume && currentBestSetVolume > 0) {
+        prs.push({ exerciseId: row.exercise_id, type: 'set', value: currentBestSetVolume, previous: allTimeBestSetVolume });
+      }
+
+      exerciseSummaries[row.exercise_id] = {
+        volume: exerciseVolume,
+        maxWeight: exerciseMaxWeight,
+        bestSet: exerciseBestSet,
+        setsCompleted: exerciseSetsCompleted,
+        totalSets: sets.length,
+        previousSessions: history.filter(h => !(date && new Date(h.date).toISOString().split('T')[0] === date)).length
+      };
+    });
+
+    res.json({
+      totalVolume,
+      totalSets,
+      completedSets,
+      completionRate: totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0,
+      exerciseCount: currentResult.rows.length,
+      prs,
+      exercises: exerciseSummaries
+    });
+  } catch (error) {
+    console.error('Get workout summary error:', error);
+    res.status(500).json({ error: 'Server error getting workout summary' });
+  }
+});
+
 // Get calendar view of workout logs for a specific month
 app.get('/api/calendar/logs', authenticateToken, async (req, res) => {
   const { month, year } = req.query;

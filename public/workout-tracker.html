@@ -292,6 +292,156 @@
             margin-top: 4px; font-weight: 500;
         }
 
+        /* Tab Switcher */
+        .tab-bar {
+            display: flex; gap: 4px; margin-bottom: 24px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 4px;
+        }
+        .tab-btn {
+            flex: 1; padding: 10px 20px;
+            background: transparent; border: none;
+            color: rgba(255,255,255,0.45); font-family: inherit;
+            font-size: 0.85rem; font-weight: 600;
+            border-radius: 8px; cursor: pointer;
+            transition: all 0.25s; display: flex;
+            align-items: center; justify-content: center; gap: 8px;
+        }
+        .tab-btn:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.12));
+            color: #fff; box-shadow: 0 2px 12px rgba(99,102,241,0.15);
+        }
+        .tab-btn .tab-icon { font-size: 1rem; }
+
+        /* Summary Styles */
+        .summary-container { animation: fadeUp 0.3s ease; }
+        .summary-stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px; margin-bottom: 28px;
+        }
+        .summary-stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px; padding: 20px;
+            text-align: center; transition: border-color 0.2s;
+        }
+        .summary-stat-card:hover { border-color: rgba(255,255,255,0.12); }
+        .stat-value {
+            font-size: 1.8rem; font-weight: 800; color: #fff;
+            letter-spacing: -0.03em; line-height: 1;
+        }
+        .stat-value.purple { background: linear-gradient(135deg, #a855f7, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .stat-value.green { color: #22c55e; }
+        .stat-value.blue { background: linear-gradient(135deg, #6366f1, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .stat-value.amber { color: #f59e0b; }
+        .stat-label {
+            font-size: 0.72rem; font-weight: 600;
+            color: rgba(255,255,255,0.35); margin-top: 8px;
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .stat-sublabel {
+            font-size: 0.75rem; color: rgba(255,255,255,0.25); margin-top: 4px;
+        }
+
+        /* Completion ring */
+        .completion-ring { position: relative; width: 80px; height: 80px; margin: 0 auto 8px; }
+        .completion-ring svg { transform: rotate(-90deg); }
+        .completion-ring .ring-text {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.1rem; font-weight: 800; color: #fff;
+        }
+
+        /* PR Banner */
+        .pr-section { margin-bottom: 28px; }
+        .pr-section-title {
+            font-size: 0.75rem; font-weight: 600;
+            color: rgba(255,255,255,0.35); text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 12px;
+        }
+        .pr-card {
+            background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(245,158,11,0.04));
+            border: 1px solid rgba(251,191,36,0.2);
+            border-radius: 12px; padding: 16px 20px;
+            margin-bottom: 10px; display: flex;
+            align-items: center; gap: 14px;
+        }
+        .pr-trophy { font-size: 1.5rem; }
+        .pr-info { flex: 1; }
+        .pr-exercise { font-size: 0.9rem; font-weight: 700; color: #fff; }
+        .pr-detail { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+        .pr-badge {
+            background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.3);
+            color: #fbbf24; padding: 4px 10px; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .no-prs {
+            text-align: center; padding: 24px;
+            color: rgba(255,255,255,0.25); font-size: 0.85rem;
+        }
+
+        /* Exercise Breakdown */
+        .breakdown-section { margin-bottom: 28px; }
+        .breakdown-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 18px 20px;
+            margin-bottom: 10px;
+        }
+        .breakdown-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 10px;
+        }
+        .breakdown-name { font-size: 0.9rem; font-weight: 700; color: #fff; }
+        .breakdown-volume { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-weight: 600; }
+        .breakdown-bar-container {
+            height: 6px; background: rgba(255,255,255,0.06);
+            border-radius: 3px; overflow: hidden; margin-bottom: 8px;
+        }
+        .breakdown-bar {
+            height: 100%; border-radius: 3px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.5s ease;
+        }
+        .breakdown-details {
+            display: flex; gap: 16px; flex-wrap: wrap;
+        }
+        .breakdown-detail {
+            font-size: 0.75rem; color: rgba(255,255,255,0.35);
+        }
+        .breakdown-detail strong { color: rgba(255,255,255,0.6); }
+
+        /* Muscle Heatmap */
+        .heatmap-section { margin-bottom: 28px; }
+        .volume-bar-chart {
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .volume-bar-row {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .volume-bar-label {
+            width: 140px; font-size: 0.8rem; font-weight: 600;
+            color: rgba(255,255,255,0.6); text-align: right;
+            flex-shrink: 0;
+        }
+        .volume-bar-track {
+            flex: 1; height: 24px; background: rgba(255,255,255,0.04);
+            border-radius: 6px; overflow: hidden; position: relative;
+        }
+        .volume-bar-fill {
+            height: 100%; border-radius: 6px;
+            transition: width 0.6s ease;
+            display: flex; align-items: center;
+            padding-left: 10px;
+        }
+        .volume-bar-value {
+            font-size: 0.7rem; font-weight: 700; color: #fff;
+            white-space: nowrap;
+        }
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
@@ -368,11 +518,22 @@
                 </div>
             </div>
 
-            <div class="workout-content" id="workoutContent">
-                <div class="empty-state">
-                    <h3>Select a day to view your workout</h3>
-                    <p>Choose a training day from the buttons above to get started</p>
+            <div>
+                <div class="tab-bar" id="tabBar" style="display:none;">
+                    <button class="tab-btn active" data-tab="exercises" onclick="switchTab('exercises')">
+                        <span class="tab-icon">&#9881;</span> Exercises
+                    </button>
+                    <button class="tab-btn" data-tab="summary" onclick="switchTab('summary')">
+                        <span class="tab-icon">&#9889;</span> Summary
+                    </button>
                 </div>
+                <div class="workout-content" id="workoutContent">
+                    <div class="empty-state">
+                        <h3>Select a day to view your workout</h3>
+                        <p>Choose a training day from the buttons above to get started</p>
+                    </div>
+                </div>
+                <div class="workout-content" id="summaryContent" style="display:none;"></div>
             </div>
         </div>
     </div>
@@ -434,6 +595,9 @@
             if (workoutData && workoutData[phaseKey] && workoutData[phaseKey].days[dayName]) {
                 selectDay(dayName);
             } else {
+                document.getElementById('tabBar').style.display = 'none';
+                document.getElementById('summaryContent').style.display = 'none';
+                document.getElementById('workoutContent').style.display = 'block';
                 document.getElementById('workoutContent').innerHTML = `
                     <div class="empty-state">
                         <h3>No workout scheduled for ${dayName.charAt(0).toUpperCase() + dayName.slice(1)}</h3>
@@ -468,7 +632,14 @@
             document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.querySelector(`[data-day="${day}"]`);
             if (btn) btn.classList.add('active');
-            loadDayWorkout(day);
+            document.getElementById('tabBar').style.display = 'flex';
+            summaryCache = null;
+            if (currentTab === 'exercises') {
+                loadDayWorkout(day);
+            } else {
+                loadDayWorkout(day);
+                loadSummary();
+            }
         }
 
         async function loadDayWorkout(day) {
@@ -702,6 +873,176 @@
         function formatDate(dateString) {
             const date = new Date(dateString + 'T00:00:00');
             return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        let currentTab = 'exercises';
+        let summaryCache = null;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            document.getElementById('workoutContent').style.display = tab === 'exercises' ? 'block' : 'none';
+            document.getElementById('summaryContent').style.display = tab === 'summary' ? 'block' : 'none';
+            if (tab === 'summary' && currentDay) loadSummary();
+        }
+
+        async function loadSummary() {
+            const content = document.getElementById('summaryContent');
+            content.innerHTML = '<div class="empty-state"><h3>Loading summary...</h3></div>';
+
+            try {
+                const selectedDate = document.getElementById('workoutDate').value;
+                const response = await fetch(`/api/workout/summary/${currentDay}?phase=${currentPhase}&week=${currentWeek}&date=${selectedDate}`);
+                const summary = await response.json();
+                summaryCache = summary;
+
+                if (summary.exerciseCount === 0) {
+                    content.innerHTML = '<div class="empty-state"><h3>No workout data for this day</h3><p>Log your exercises first to see the summary</p></div>';
+                    return;
+                }
+
+                const phaseKey = `phase${currentPhase}`;
+                const dayData = workoutData[phaseKey]?.days[currentDay];
+                const exerciseNames = {};
+                const exerciseTypes = {};
+                if (dayData) {
+                    dayData.exercises.forEach(e => {
+                        exerciseNames[e.id] = e.name;
+                        exerciseTypes[e.id] = e.type;
+                    });
+                }
+
+                // Format volume number
+                const fmtVol = (v) => v >= 1000 ? (v/1000).toFixed(1).replace(/\.0$/,'') + 'k' : Math.round(v);
+
+                // Completion ring SVG
+                const pct = summary.completionRate;
+                const circumference = 2 * Math.PI * 34;
+                const strokeDashoffset = circumference - (pct / 100) * circumference;
+                const ringColor = pct === 100 ? '#22c55e' : pct >= 75 ? '#6366f1' : pct >= 50 ? '#f59e0b' : '#ef4444';
+
+                let html = `
+                    <div class="workout-header">
+                        <h2>${dayData ? dayData.name : currentDay} - Summary</h2>
+                        <p class="phase-info">Phase ${currentPhase} &middot; Week ${currentWeek} &middot; ${formatDate(selectedDate)}</p>
+                    </div>
+
+                    <div class="summary-stats-grid">
+                        <div class="summary-stat-card">
+                            <div class="completion-ring">
+                                <svg width="80" height="80" viewBox="0 0 80 80">
+                                    <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+                                    <circle cx="40" cy="40" r="34" fill="none" stroke="${ringColor}" stroke-width="6"
+                                        stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${strokeDashoffset}"/>
+                                </svg>
+                                <span class="ring-text">${pct}%</span>
+                            </div>
+                            <div class="stat-label">Completion</div>
+                            <div class="stat-sublabel">${summary.completedSets}/${summary.totalSets} sets</div>
+                        </div>
+                        <div class="summary-stat-card">
+                            <div class="stat-value purple">${fmtVol(summary.totalVolume)}</div>
+                            <div class="stat-label">Total Volume</div>
+                            <div class="stat-sublabel">lbs moved</div>
+                        </div>
+                        <div class="summary-stat-card">
+                            <div class="stat-value blue">${summary.exerciseCount}</div>
+                            <div class="stat-label">Exercises</div>
+                            <div class="stat-sublabel">completed</div>
+                        </div>
+                        <div class="summary-stat-card">
+                            <div class="stat-value amber">${summary.prs.length}</div>
+                            <div class="stat-label">PRs Hit</div>
+                            <div class="stat-sublabel">${summary.prs.length > 0 ? 'today!' : 'this session'}</div>
+                        </div>
+                    </div>`;
+
+                // PR Section
+                html += '<div class="pr-section"><div class="pr-section-title">Personal Records</div>';
+                if (summary.prs.length > 0) {
+                    summary.prs.forEach(pr => {
+                        const name = exerciseNames[pr.exerciseId] || pr.exerciseId;
+                        let detail = '';
+                        let badge = '';
+                        if (pr.type === 'weight') {
+                            badge = 'Weight PR';
+                            detail = `${pr.value} lbs (previous best: ${pr.previous > 0 ? pr.previous + ' lbs' : 'none'})`;
+                        } else if (pr.type === 'volume') {
+                            badge = 'Volume PR';
+                            detail = `${fmtVol(pr.value)} lbs total (previous: ${pr.previous > 0 ? fmtVol(pr.previous) + ' lbs' : 'none'})`;
+                        } else if (pr.type === 'set') {
+                            badge = 'Best Set';
+                            detail = `${fmtVol(pr.value)} lbs in a single set (previous: ${pr.previous > 0 ? fmtVol(pr.previous) + ' lbs' : 'none'})`;
+                        }
+                        html += `
+                            <div class="pr-card">
+                                <div class="pr-trophy">&#127942;</div>
+                                <div class="pr-info">
+                                    <div class="pr-exercise">${name}</div>
+                                    <div class="pr-detail">${detail}</div>
+                                </div>
+                                <div class="pr-badge">${badge}</div>
+                            </div>`;
+                    });
+                } else {
+                    html += '<div class="no-prs">No new PRs this session — keep pushing!</div>';
+                }
+                html += '</div>';
+
+                // Volume by exercise chart
+                const exercises = Object.entries(summary.exercises);
+                if (exercises.length > 0) {
+                    const maxVol = Math.max(...exercises.map(([,e]) => e.volume));
+
+                    html += '<div class="heatmap-section"><div class="pr-section-title">Volume by Exercise</div><div class="volume-bar-chart">';
+                    const barColors = ['#6366f1','#a855f7','#ec4899','#f43f5e','#f59e0b','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#d946ef'];
+                    exercises.sort((a, b) => b[1].volume - a[1].volume);
+                    exercises.forEach(([id, data], i) => {
+                        const name = exerciseNames[id] || id;
+                        const widthPct = maxVol > 0 ? (data.volume / maxVol * 100) : 0;
+                        const color = barColors[i % barColors.length];
+                        html += `
+                            <div class="volume-bar-row">
+                                <div class="volume-bar-label">${name}</div>
+                                <div class="volume-bar-track">
+                                    <div class="volume-bar-fill" style="width:${widthPct}%; background:${color};">
+                                        ${widthPct > 15 ? `<span class="volume-bar-value">${fmtVol(data.volume)} lbs</span>` : ''}
+                                    </div>
+                                </div>
+                                ${widthPct <= 15 ? `<span style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-weight:600;">${fmtVol(data.volume)}</span>` : ''}
+                            </div>`;
+                    });
+                    html += '</div></div>';
+
+                    // Exercise breakdown cards
+                    html += '<div class="breakdown-section"><div class="pr-section-title">Exercise Breakdown</div>';
+                    exercises.forEach(([id, data]) => {
+                        const name = exerciseNames[id] || id;
+                        const completionPct = data.totalSets > 0 ? Math.round(data.setsCompleted / data.totalSets * 100) : 0;
+                        html += `
+                            <div class="breakdown-card">
+                                <div class="breakdown-header">
+                                    <div class="breakdown-name">${name}</div>
+                                    <div class="breakdown-volume">${fmtVol(data.volume)} lbs</div>
+                                </div>
+                                <div class="breakdown-bar-container">
+                                    <div class="breakdown-bar" style="width:${completionPct}%"></div>
+                                </div>
+                                <div class="breakdown-details">
+                                    <div class="breakdown-detail">Sets: <strong>${data.setsCompleted}/${data.totalSets}</strong></div>
+                                    <div class="breakdown-detail">Top Weight: <strong>${data.maxWeight} lbs</strong></div>
+                                    ${data.bestSet ? `<div class="breakdown-detail">Best Set: <strong>${data.bestSet.weight} lbs x ${data.bestSet.reps}</strong></div>` : ''}
+                                </div>
+                            </div>`;
+                    });
+                    html += '</div>';
+                }
+
+                content.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading summary:', error);
+                content.innerHTML = '<div class="empty-state"><h3>Error loading summary</h3></div>';
+            }
         }
 
         init();
